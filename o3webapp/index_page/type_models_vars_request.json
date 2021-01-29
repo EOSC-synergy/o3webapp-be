@@ -1,0 +1,14 @@
+{
+    
+    "operationID": "type_models_var_reuqest",
+    "parameters":[
+        {
+            "default":"all",
+            "description":"Plot type (all, tco3_zm, vmro3_zm, tco3_return)",
+            "in":"path",
+            "name":"ptype",
+            "required":true,
+            "type":"string"
+        }
+    ]
+}

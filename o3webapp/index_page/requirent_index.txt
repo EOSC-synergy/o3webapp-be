@@ -1,0 +1,31 @@
+29.01.2021: decide index page{
+    # decided the index page of front-end and back-end with json-file. Json file dont fit into form data request. But we dont need to use a third party service. so we decided to use Json file for post request.
+    # we analyze the request (get/post) on the o3asAPI homepage and also its corresponding json file. After that we extract the request structure from the json file into 7 seperated json files. 
+    # So that we setup our request in index page according to these extracted json files.
+
+    #api_info_request: get info of o3as api.
+    #plot_types_request: get all available plot types 
+    #models_info_request: get all available models with short info
+    #type_model_var_request: get model-list available for a certain plot type, and vars needed by this plot type.
+    #plot_tco3_zm_request: request the info for drawing the plot according to tco3_zm.
+    #plot_vmro3_zm_request: request the info for drawing the plot according to vmro3_zm.
+    #plot_tco3_return_request: request the info for drawing the plot according to tco3_return.
+
+
+    #download_request: dont need to access the o3asAPI, because we will backup the recent plot in our local storage.
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
