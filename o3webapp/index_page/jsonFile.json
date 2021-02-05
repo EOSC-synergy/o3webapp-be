@@ -1,0 +1,482 @@
+{
+    "basePath": "/api",
+    "consumes": [
+        "application/json"
+    ],
+    "definitions": {
+        "Error": {
+            "type": "string"
+        },
+        "ListModels": {
+            "items": {
+                "type": "string"
+            },
+            "type": "array"
+        },
+        "ListPlots": {
+            "properties": {
+                "plots": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                }
+            },
+            "type": "object"
+        },
+        "MetaInfo": {
+            "properties": {
+                "author": {
+                    "type": "string"
+                },
+                "author-email": {
+                    "type": "string"
+                },
+                "home-page": {
+                    "type": "string"
+                },
+                "license": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "summary": {
+                    "type": "string"
+                },
+                "version": {
+                    "type": "string"
+                }
+            },
+            "type": "object"
+        },
+        "ModelInfo": {
+            "properties": {
+                "info": {
+                    "type": "string"
+                },
+                "model": {
+                    "type": "string"
+                },
+                "tco3_return": {
+                    "type": "object"
+                },
+                "tco3_zm": {
+                    "type": "object"
+                },
+                "url": {
+                    "type": "string"
+                },
+                "vmro3_zm": {
+                    "type": "object"
+                }
+            },
+            "type": "object"
+        },
+        "Models": {
+            "items": {
+                "properties": {
+                    "info": {
+                        "type": "string"
+                    },
+                    "model": {
+                        "type": "string"
+                    },
+                    "tco3_return": {
+                        "type": "object"
+                    },
+                    "tco3_zm": {
+                        "type": "object"
+                    },
+                    "url": {
+                        "type": "string"
+                    },
+                    "vmro3_zm": {
+                        "type": "object"
+                    }
+                }
+            },
+            "type": "array"
+        },
+        "TCO3Data": {
+            "items": {
+                "properties": {
+                    "model": {
+                        "type": "string"
+                    },
+                    "x": {
+                        "type": "array"
+                    },
+                    "y": {
+                        "type": "array"
+                    }
+                }
+            },
+            "type": "array"
+        },
+        "TCO3ReturnData": {
+            "items": {
+                "properties": {
+                    "model": {
+                        "type": "string"
+                    },
+                    "x": {
+                        "type": "array"
+                    },
+                    "y": {
+                        "type": "array"
+                    }
+                }
+            },
+            "type": "array"
+        },
+        "VMRO3Data": {
+            "items": {
+                "properties": {
+                    "model": {
+                        "type": "string"
+                    },
+                    "x": {
+                        "type": "array"
+                    },
+                    "y": {
+                        "type": "array"
+                    }
+                }
+            },
+            "type": "array"
+        }
+    },
+    "info": {
+        "description": "This is the swagger file that goes with our server code",
+        "title": "Swagger REST API for O3as",
+        "version": "1.0.0"
+    },
+    "paths": {
+        "/api-info": {
+            "get": {
+                "description": "Return o3api metadata",
+                "operationId": "o3api.api.get_api_info",
+                "produces": [
+                    "application/json"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successfully returned o3api info",
+                        "schema": {
+                            "$ref": "#/definitions/MetaInfo"
+                        }
+                    }
+                },
+                "summary": "Returning information about the service",
+                "tags": [
+                    "api-info"
+                ]
+            }
+        },
+        "/models": {
+            "get": {
+                "description": "Return list of models + short info",
+                "operationId": "o3api.api.get_models_info",
+                "produces": [
+                    "application/json"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successfully returned list of models",
+                        "schema": {
+                            "$ref": "#/definitions/Models"
+                        }
+                    }
+                },
+                "summary": "Returning list of available models + short info",
+                "tags": [
+                    "models"
+                ]
+            }
+        },
+        "/models/list/{ptype}": {
+            "post": {
+                "description": "Return list of models for a certain plot type",
+                "operationId": "o3api.api.list_models",
+                "parameters": [
+                    {
+                        "default": "all",
+                        "description": "Plot type (all, tco3_zm, vmro3_zm, tco3_return)",
+                        "in": "path",
+                        "name": "ptype",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "description": "Select models according to the {select} pattern",
+                        "in": "query",
+                        "name": "select",
+                        "required": false,
+                        "type": "string"
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successfully returned list of models",
+                        "schema": {
+                            "$ref": "#/definitions/ListModels"
+                        }
+                    }
+                },
+                "summary": "Returning list of models for a certain plot type",
+                "tags": [
+                    "models"
+                ]
+            }
+        },
+        "/models/{model}": {
+            "get": {
+                "description": "Return detailed model info",
+                "operationId": "o3api.api.get_model_detail",
+                "parameters": [
+                    {
+                        "default": "CCMI-1_ACCESS-refC2",
+                        "description": "model name",
+                        "in": "path",
+                        "name": "model",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successfully returned model information",
+                        "schema": {
+                            "$ref": "#/definitions/ModelInfo"
+                        }
+                    }
+                },
+                "summary": "Returning detailed information about a model",
+                "tags": [
+                    "models"
+                ]
+            }
+        },
+        "/plots": {
+            "get": {
+                "description": "Get the list of possible plots",
+                "operationId": "o3api.api.get_plots",
+                "produces": [
+                    "application/json"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successfully returned the list of possible plots",
+                        "schema": {
+                            "$ref": "#/definitions/ListPlots"
+                        }
+                    }
+                },
+                "summary": "Get the list of possible plots",
+                "tags": [
+                    "plots"
+                ]
+            }
+        },
+        "/plots/tco3_return": {
+            "post": {
+                "description": "Create tco3_return plot",
+                "operationId": "o3api.api.tco3_return",
+                "parameters": [
+                    {
+                        "default": [
+                            "CCMI-1_ACCESS-refC2",
+                            "CCMI-1_CCCma-CMAM-refC2",
+                            "CCMI-1_CHASER-MIROC-ESM-refC2"
+                        ],
+                        "description": "Name(s) of model(s) (dataset-model)",
+                        "in": "query",
+                        "items": {
+                            "type": "string"
+                        },
+                        "name": "model",
+                        "required": true,
+                        "type": "array"
+                    },
+                    {
+                        "default": 1959,
+                        "description": "Year to start data scanning from",
+                        "in": "query",
+                        "name": "begin",
+                        "required": false,
+                        "type": "integer"
+                    },
+                    {
+                        "default": 2100,
+                        "description": "Year to finish data scanning",
+                        "in": "query",
+                        "name": "end",
+                        "required": false,
+                        "type": "integer"
+                    }
+                ],
+                "produces": [
+                    "application/pdf",
+                    "application/json"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successfully created a plot",
+                        "schema": {
+                            "$ref": "#/definitions/TCO3ReturnData"
+                        }
+                    }
+                },
+                "summary": "Create tco3_return plot",
+                "tags": [
+                    "plots"
+                ]
+            }
+        },
+        "/plots/tco3_zm": {
+            "post": {
+                "description": "Create tco3_zm plot",
+                "operationId": "o3api.api.tco3_zm",
+                "parameters": [
+                    {
+                        "default": [
+                            "CCMI-1_ACCESS-refC2",
+                            "CCMI-1_CCCma-CMAM-refC2",
+                            "CCMI-1_CHASER-MIROC-ESM-refC2"
+                        ],
+                        "description": "Name(s) of model(s) (dataset-model)",
+                        "in": "query",
+                        "items": {
+                            "type": "string"
+                        },
+                        "name": "model",
+                        "required": true,
+                        "type": "array"
+                    },
+                    {
+                        "default": 1959,
+                        "description": "Year to start data scanning from",
+                        "in": "query",
+                        "name": "begin",
+                        "required": false,
+                        "type": "integer"
+                    },
+                    {
+                        "default": 2100,
+                        "description": "Year to finish data scanning",
+                        "in": "query",
+                        "name": "end",
+                        "required": false,
+                        "type": "integer"
+                    },
+                    {
+                        "default": [],
+                        "description": "Month(s) to select, if not a whole year",
+                        "in": "query",
+                        "items": {
+                            "type": "integer"
+                        },
+                        "name": "month",
+                        "required": false,
+                        "type": "array"
+                    },
+                    {
+                        "default": -10,
+                        "description": "Latitude (min) to define the range (-90..90)",
+                        "in": "query",
+                        "name": "lat_min",
+                        "required": false,
+                        "type": "integer"
+                    },
+                    {
+                        "default": 10,
+                        "description": "Latitude (max) to define the range (-90..90)",
+                        "in": "query",
+                        "name": "lat_max",
+                        "required": false,
+                        "type": "integer"
+                    }
+                ],
+                "produces": [
+                    "application/pdf",
+                    "application/json"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successfully created a plot",
+                        "schema": {
+                            "$ref": "#/definitions/TCO3Data"
+                        }
+                    }
+                },
+                "summary": "Create tco3_zm plot",
+                "tags": [
+                    "plots"
+                ]
+            }
+        },
+        "/plots/vmro3_zm": {
+            "post": {
+                "description": "Create vmro3_zm plot",
+                "operationId": "o3api.api.vmro3_zm",
+                "parameters": [
+                    {
+                        "default": [
+                            "CCMI-1_ACCESS-refC2",
+                            "CCMI-1_CCCma-CMAM-refC2",
+                            "CCMI-1_CHASER-MIROC-ESM-refC2"
+                        ],
+                        "description": "Name(s) of model(s) (dataset-model)",
+                        "in": "query",
+                        "items": {
+                            "type": "string"
+                        },
+                        "name": "model",
+                        "required": true,
+                        "type": "array"
+                    },
+                    {
+                        "default": 1959,
+                        "description": "Year to start data scanning from",
+                        "in": "query",
+                        "name": "begin",
+                        "required": false,
+                        "type": "integer"
+                    },
+                    {
+                        "default": 2100,
+                        "description": "Year to finish data scanning",
+                        "in": "query",
+                        "name": "end",
+                        "required": false,
+                        "type": "integer"
+                    }
+                ],
+                "produces": [
+                    "application/pdf",
+                    "application/json"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successfully created a plot",
+                        "schema": {
+                            "$ref": "#/definitions/VMRO3Data"
+                        }
+                    }
+                },
+                "summary": "Create vmro3_zm plot",
+                "tags": [
+                    "plots"
+                ]
+            }
+        }
+    },
+    "swagger": "2.0"
+}

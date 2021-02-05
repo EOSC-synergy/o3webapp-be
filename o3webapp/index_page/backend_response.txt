@@ -1,0 +1,99 @@
+================================================================
+api_info.json
+
+{"author":"KIT-IMK, KIT-SCC",
+ "author-email":"tobias.kerzenmacher@kit.edu, borja.sanchis@kit.edu, valentin.kozlov@kit.edu",
+ "home-page":"https://git.scc.kit.edu/synergy.o3as/o3api",
+ "license":"GNU LGPLv3",
+ "name":"o3api",
+ "summary":"REST API for the O3as service to analyse Ozone projections",
+ "version":"0.0.0"}
+
+
+
+
+================================================================
+redirect static/plotpage.html
+===============================================================
+redirect static/plotpage.html
+
+================================================================
+api_info.json
+
+{"author":"KIT-IMK, KIT-SCC",
+ "author-email":"tobias.kerzenmacher@kit.edu, borja.sanchis@kit.edu, valentin.kozlov@kit.edu",
+ "home-page":"https://git.scc.kit.edu/synergy.o3as/o3api",
+ "license":"GNU LGPLv3",
+ "name":"o3api",
+ "summary":"REST API for the O3as service to analyse Ozone projections",
+ "version":"0.0.0"}
+===============================================================
+
+
+["tco3_zm",
+ "vmro3_zm",
+ "tco3_return"]
+
+
+
+
+===============================================================
+
+
+{"models":["CCMI-1_IPSL-senC2rcp85"],
+ "vars":[{"name":"model","type":"array"},
+         {"name":"begin","type":"integer"},
+         {"name":"end","type":"integer"}]}
+
+
+
+===============================================================
+
+
+{"models":["CCMI-1_ACCESS-refC2", ...],
+ "vars":[{"name":"model","type":"array"},
+         {"name":"begin","type":"integer"},
+         {"name":"end","type":"integer"}]}
+
+
+
+===============================================================
+
+
+{"models":["CCMI-1_ACCESS-refC2", ....],
+ "vars":[{"name":"model","type":"array"},
+         {"name":"begin","type":"integer"},
+         {"name":"end","type":"integer"},
+         {"name":"month","type":"array"},
+         {"name":"lat_min","type":"integer"},
+         {"name":"lat_max","type":"integer"}]}
+===============================================================
+
+
+[{"model":"CCMI-1_ACCESS-refC2",
+  "x":["1960-07-16T00:00:00Z","1961-07-16T00:00:00Z",...],
+  "y":[297.50274658203125,295.5724182128906,...]}]
+
+
+
+
+===============================================================
+
+
+[{"message":"'month'",
+  "object":"",
+  "status":"Error"}]
+
+
+
+
+===============================================================
+
+
+[{"message":"'month'",
+  "object":"",
+  "status":"Error"}]
+
+
+
+  

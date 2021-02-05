@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+</head>
+<body>
+
+<select name="opID" id="opID">
+  <option value="api_info">api_info</option>
+  <option value="p_type">p_type</option>
+  <option value="model_info">model_info</option>
+  <option value="t_M_V">t_M_V</option>
+  <option value="plot">plot</option>
+</select>
+<form id="plot"target="_blank">
+  <label for="pType">Plot type:</label>
+  <input type="text" id="pType" name="pType"><br><br>
+  <label for="model">model:</label>
+  <input type="text" id="model" name="model"><br><br>
+  <label for="begin">begin:</label>
+  <input type="text" id="begin" name="begin"><br><br>
+  <label for="end">end:</label>
+  <input type="text" id="end" name="end"><br><br>
+  <label for="month">month:</label>
+  <input type="text" id="month" name="month"><br><br>
+  <label for="lat_min">lat_min:</label>
+  <input type="text" id="lat_min" name="lat_min"><br><br>
+  <label for="lat_max">lat_max:</label>
+  <input type="text" id="lat_max" name="lat_max"><br><br>
+  <input type="button" id="button" value="button" onclick="sendJSON()"><br><br>
+</form>
+
+<p id="request_url">Click on the submit button, and the plot type will be sent to the back-end "/plot".</p>
+<p id="response">Click on the submit button, and the plot type will be sent to the back-end "/plot".</p>
+
+<script>
+function sendJSON(){ 
+               
+    var opID_select = document.getElementById("opID")
+    var opID = opID_select.options[opID_select.selectedIndex].text
+    var url = "/plot/" + opID
+    var xhr = new XMLHttpRequest(); 
+    xhr.open("POST", url, true); 
+    xhr.setRequestHeader("Content-Type", "application/json"); 
+    xhr.onreadystatechange = function () { 
+        if (xhr.readyState === 4 && xhr.status === 200) { 
+            document.getElementById("response").innerHTML = this.responseText;
+        } 
+    }; 
+
+    var jsonData = JSON.stringify($("#plot").serializeArray()); 
+    document.getElementById("request_url").innerHTML = jsonData;
+    document.getElementById("response").innerHTML = "waiting for response";
+    xhr.send(jsonData); 
+} 
+</script>
+</body>
+</html>

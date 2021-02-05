@@ -1,0 +1,99 @@
+=============================GET===================================
+/
+
+
+
+
+
+
+
+
+
+
+
+
+=============================GET===================================
+/plot
+=============================GET===================================
+/plot/*****
+
+=============================POST==================================
+/plot/api_info
+
+[{"name":"pType","value":""},
+ {"name":"model","value":""},
+ {"name":"begin","value":""},
+ {"name":"end","value":""},
+ {"name":"month","value":""},
+ {"name":"lat_min","value":""},
+ {"name":"lat_max","value":""}]
+=============================POST==================================
+/plot/pType
+
+[{"name":"pType","value":""},
+ {"name":"model","value":""},
+ {"name":"begin","value":""},
+ {"name":"end","value":""},
+ {"name":"month","value":""},
+ {"name":"lat_min","value":""},
+ {"name":"lat_max","value":""}]
+=============================POST==================================
+/plot/t_M_V
+
+[{"name":"pType","value":"vmro3_zm"},
+ {"name":"model","value":""},
+ {"name":"begin","value":""},
+ {"name":"end","value":""},
+ {"name":"month","value":""},
+ {"name":"lat_min","value":""},
+ {"name":"lat_max","value":""}]
+=============================POST==================================
+/plot/t_M_V
+
+[{"name":"pType","value":"tco3_return"},
+ {"name":"model","value":""},
+ {"name":"begin","value":""},
+ {"name":"end","value":""},
+ {"name":"month","value":""},
+ {"name":"lat_min","value":""},
+ {"name":"lat_max","value":""}]
+=============================POST==================================
+/plot/t_M_V
+
+ [{"name":"pType","value":"tco3_zm"},
+  {"name":"model","value":""},
+  {"name":"begin","value":""},
+  {"name":"end","value":""},
+  {"name":"month","value":""},
+  {"name":"lat_min","value":""},
+  {"name":"lat_max","value":""}]
+=============================POST==================================
+/plot/plot
+
+[{"name":"pType","value":"tco3_zm"},
+ {"name":"model","value":"CCMI-1_ACCESS-refC2"},
+ {"name":"begin","value":"1959"},
+ {"name":"end","value":"2100"},
+ {"name":"month","value":"7"},
+ {"name":"lat_min","value":"-10"},
+ {"name":"lat_max","value":"10"}]
+ =============================POST==================================
+/plot/plot
+
+[{"name":"pType","value":"tco3_return"},
+ {"name":"model","value":"CCMI-1_ACCESS-refC2"},
+ {"name":"begin","value":"1959"},
+ {"name":"end","value":"2100"}]
+
+
+
+  =============================POST==================================
+/plot/plot
+
+[{"name":"pType","value":"vmro3_zm"},
+ {"name":"model","value":"CCMI-1_IPSL-senC2rcp85"},
+ {"name":"begin","value":"1959"},
+ {"name":"end","value":"2100"}]
+
+
+ 
