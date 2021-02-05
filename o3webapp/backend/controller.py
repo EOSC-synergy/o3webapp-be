@@ -1,6 +1,6 @@
 from flask import request,jsonify
 from plotData import PlotData
-from requestor import APIInfoRequestor,PlotypesRequestor,TypeModelsVarsRequestor,Tco3ZmRequestor,Tco3ReturnRequestor,Vmro3ZmRequestor
+from requestor import APIInfoRequestor,PlotypesRequestor,ModelsInfoRequestor,TypeModelsVarsRequestor,Tco3ZmRequestor,Tco3ReturnRequestor,Vmro3ZmRequestor
 
 # Controller, scheduling the process for handling the user-request. 
 # Specific controller handles the request-object with the corresponding operation ID.
@@ -35,9 +35,11 @@ class APIInfoController(InfoUpateController):
         self.infoRequestor = APIInfoRequestor()
         
 class ModelsInfoController(InfoUpateController):
-    def __init__(self):
+    def __init__(self, userRequest):
         super().__init__()
-        self.infoRequestor = ModelsInfoRequestor()
+        self.jsonRequest = userRequest.get_json()
+        self.modelName = self.jsonRequest[1]['value']
+        self.infoRequestor = ModelsInfoRequestor(self.modelName)
 
 class PlotypesController(InfoUpateController):
     def __init__(self):
@@ -113,10 +115,6 @@ class Vmro3ZmController(PlotController):
     def __init__(self, request):
         super().__init__(request)
         self.plotRequestor = Vmro3ZmRequestor()
-
-
-
-
 
 ############################################################
 #   Controller requiring info from local storage

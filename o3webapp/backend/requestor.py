@@ -23,9 +23,9 @@ class APIInfoRequestor(InfoUpdateRequestor):
         self.url += 'api-info'
     
 class ModelsInfoRequestor(InfoUpdateRequestor):
-    def __init__(self):
+    def __init__(self, modelName):
         super().__init__()
-        self.url += 'models'
+        self.url += 'models/' + modelName
 
 class PlotypesRequestor(InfoUpdateRequestor):
     def __init__(self):
