@@ -37,6 +37,9 @@ class TypeModelsVarsRequestor(Requestor):
         super().__init__()
         self.typeName = typeName
         self.headers = {'Content-Type': 'application/json', 'Accept': 'application/json'}
+        # TODO select items needed for the chosen plot type
+        self.varPattern = lambda para: {'name': para['name'], 'type': para['type']}
+        self.paraArray = lambda completeJson, ptype: completeJson['paths'][ptype]['post']['parameters']
 
     def request_models(self):
         typeModelsUrl = self.url + 'models/list/' + self.typeName
@@ -50,15 +53,12 @@ class TypeModelsVarsRequestor(Requestor):
 
     def extract_vars4ptype(self, completeJson):
         ptype = '/plots/' + self.typeName
-        parameterArray = completeJson['paths'][ptype]['post']['parameters']
-        # TODO select items needed for the chosen plot type
-        return list(map(lambda para: {'name': para['name'], 'type': para['type']}, parameterArray))
-
+        parameterArray = self.paraArray(completeJson, ptype)
+        return list(map(self.varPattern, parameterArray))
 
 class ModelDataRequestor(Requestor):
     def __init__(self):
         super().__init__()
-        
         
     def request_model_data(self, plotData):
         self.plotData = plotData
@@ -68,8 +68,6 @@ class ModelDataRequestor(Requestor):
         r = requests.post(self.url, headers=self.headers, params=self.varDict)
         return r.json()
     
-
-
 class Tco3ZmRequestor(ModelDataRequestor):
     def __init__(self):
         super().__init__()

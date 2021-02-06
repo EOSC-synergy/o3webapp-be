@@ -1,4 +1,3 @@
-
 from flask import url_for,redirect,request
 from controller import APIInfoController,PlotypesController,ModelsInfoController,TypeModelsVarsController,PlotController
 
@@ -46,5 +45,3 @@ class UserManager:
                 return "plot page"
         else:
             return redirect(url_for('static', filename='plotpage.html'))
-
-
