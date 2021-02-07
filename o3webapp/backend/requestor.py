@@ -23,9 +23,9 @@ class APIInfoRequestor(InfoUpdateRequestor):
         self.url += 'api-info'
     
 class ModelsInfoRequestor(InfoUpdateRequestor):
-    def __init__(self, modelName):
+    def __init__(self):
         super().__init__()
-        self.url += 'models/' + modelName
+        self.url += 'models'
 
 class PlotypesRequestor(InfoUpdateRequestor):
     def __init__(self):
@@ -33,30 +33,20 @@ class PlotypesRequestor(InfoUpdateRequestor):
         self.url += 'plots'
 
 class TypeModelsVarsRequestor(Requestor):
-    def __init__(self, typeName):
+    def __init__(self):
         super().__init__()
-        self.typeName = typeName
         self.headers = {'Content-Type': 'application/json', 'Accept': 'application/json'}
-        # TODO select items needed for the chosen plot type
-        self.varPattern = lambda para: {'name': para['name'], 'type': para['type']}
-        self.paraArray = lambda completeJson, ptype: completeJson['paths'][ptype]['post']['parameters']
 
-    def request_models(self):
-        typeModelsUrl = self.url + 'models/list/' + self.typeName
+    def request_models(self, typeName):
+        typeModelsUrl = self.url + 'models/list/' + typeName
         r = requests.post(typeModelsUrl, headers=self.headers)
         return r.json()
 
     def request_vars(self):
         typeVarsUrl = self.url + 'swagger.json'
-        r = requests.get(typeVarsUrl)
-        return self.extract_vars4ptype(r.json())
+        return requests.get(typeVarsUrl).json()
 
-    def extract_vars4ptype(self, completeJson):
-        ptype = '/plots/' + self.typeName
-        parameterArray = self.paraArray(completeJson, ptype)
-        return list(map(self.varPattern, parameterArray))
-
-class ModelDataRequestor(Requestor):
+class PlotDataRequestor(Requestor):
     def __init__(self):
         super().__init__()
         
@@ -68,14 +58,14 @@ class ModelDataRequestor(Requestor):
         r = requests.post(self.url, headers=self.headers, params=self.varDict)
         return r.json()
     
-class Tco3ZmRequestor(ModelDataRequestor):
+class Tco3ZmRequestor(PlotDataRequestor):
     def __init__(self):
         super().__init__()
 
-class Tco3ReturnRequestor(ModelDataRequestor):
+class Tco3ReturnRequestor(PlotDataRequestor):
     def __init__(self):
         super().__init__()
 
-class Vmro3ZmRequestor(ModelDataRequestor):
+class Vmro3ZmRequestor(PlotDataRequestor):
     def __init__(self):
         super().__init__()

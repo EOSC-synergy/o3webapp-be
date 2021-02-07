@@ -1,6 +1,7 @@
 from flask import request,jsonify
 from plotData import PlotData
-from requestor import APIInfoRequestor,PlotypesRequestor,ModelsInfoRequestor,TypeModelsVarsRequestor,Tco3ZmRequestor,Tco3ReturnRequestor,Vmro3ZmRequestor
+from requestor import APIInfoRequestor,PlotypesRequestor,ModelsInfoRequestor,TypeModelsVarsRequestor,Tco3ZmRequestor,Tco3ReturnRequestor,Vmro3ZmRequestor,PlotDataRequestor
+from requestParser import TypeModelsVarsParser,InfoParser,PlotParser,Tco3ZmParser,Tco3ReturnParser,Vmro3ZmParser
 
 # Controller, scheduling the process for handling the user-request. 
 # Specific controller handles the request-object with the corresponding operation ID.
@@ -35,11 +36,9 @@ class APIInfoController(InfoUpateController):
         self.infoRequestor = APIInfoRequestor()
         
 class ModelsInfoController(InfoUpateController):
-    def __init__(self, userRequest):
+    def __init__(self):
         super().__init__()
-        self.jsonRequest = userRequest.get_json()
-        self.modelName = self.jsonRequest[1]['value']
-        self.infoRequestor = ModelsInfoRequestor(self.modelName)
+        self.infoRequestor = ModelsInfoRequestor()
 
 class PlotypesController(InfoUpateController):
     def __init__(self):
@@ -47,78 +46,74 @@ class PlotypesController(InfoUpateController):
         self.infoRequestor = PlotypesRequestor()
         
 class TypeModelsVarsController(RemoteController):
-    def __init__(self, userRequest):
+    def __init__(self, jsonRequest):
         super().__init__()
-        self.jsonRequest = userRequest.get_json()
-        self.typeName = self.jsonRequest[0]['value']
-        self.typeModelsVarsRequestor = TypeModelsVarsRequestor(self.typeName)
+        self.typeModelsVarsParser = TypeModelsVarsParser(jsonRequest)
+        self.typeModelsVarsRequestor = TypeModelsVarsRequestor()
 
     def handle_process(self):
-        return jsonify(self.request_models_vars())
+        typeName = self.typeModelsVarsParser.parse_user_request()
+        modelsJson = self.typeModelsVarsRequestor.request_models(typeName)
+        completeJson = self.typeModelsVarsRequestor.request_vars()
+        varsJson = self.typeModelsVarsParser.parse_varsjson_file(completeJson, typeName)
+        return jsonify({'models': modelsJson, 'vars': varsJson})
 
-    # I: <'pType': 'tco3_zm/vmro3_zm/tco3_return'>
-    # O: <<'models': []>, <'vars': []>>
-    def request_models_vars(self):
-        return {'models': self.request_models() , 'vars': self.request_vars()}
-
-    def request_models(self):
-        return self.typeModelsVarsRequestor.request_models()
-        
-    def request_vars(self):
-        return self.typeModelsVarsRequestor.request_vars()
-
+    
 class PlotController(RemoteController):
-    def __init__(self, request):
+    def __init__(self, jsonRequest):
         super().__init__()
-        self.userRequest = request
-        self.jsonRequest = self.userRequest.get_json()
-        self.typeName = self.jsonRequest[0]['value']
+        self.jsonRequest = jsonRequest
 
     def assign_plot_controller(self):
-        if self.typeName == 'tco3_zm':
-            return Tco3ZmController(self.userRequest)
-        elif self.typeName == 'vmro3_zm':
-            return Vmro3ZmController(self.userRequest)
-        elif self.typeName == 'tco3_return':
-            return Tco3ReturnController(self.userRequest)
+        typeName = self.plotData.ptype
+        if typeName == 'tco3_zm':
+            return Tco3ZmController(self.jsonRequest)
+        elif typeName == 'vmro3_zm':
+            return Vmro3ZmController(self.jsonRequest)
+        elif typeName == 'tco3_return':
+            return Tco3ReturnController(self.jsonRequest)
         else:
-            return 'plot type does not exist!'
+            return Tco3ZmController(self.jsonRequest)
     
     def handle_process(self):
         assignedController = self.assign_plot_controller()
         return jsonify(assignedController.handle_plot_process())
 
     def handle_plot_process(self):
-        self.parse_request_2_plotdata()
-        return self.plotRequestor.request_model_data(self.plotData)
-
-    def parse_request_2_plotdata(self):
-        varData = {}
-        for i in range(1,len(self.jsonRequest)):
-            key = self.jsonRequest[i]['name']
-            value = self.jsonRequest[i]['value']
-            varData[key] = value
-
-        self.plotData = PlotData(self.typeName, varData)
+        self.plotData = self.plotParser.parse_request_2_plotdata()
+        plotJsonFile = self.plotDataRequestor.request_model_data(self.plotData)
+        #TODO main process for plotdata structure and fill it
+        return jsonify(plotJsonFile)
 
 class Tco3ZmController(PlotController):
-    def __init__(self, request):
-        super().__init__(request)
+    def __init__(self, jsonRequest):
+        super().__init__(jsonRequest)
         self.plotRequestor = Tco3ZmRequestor()
+        self.plotParser = Tco3ZmParser(self.jsonRequest)
 
 class Tco3ReturnController(PlotController):
-    def __init__(self, request):
-        super().__init__(request)
+    def __init__(self, jsonRequest):
+        super().__init__(jsonRequest)
         self.plotRequestor = Tco3ReturnRequestor()
+        self.plotParser = Tco3ReturnParser(self.jsonRequest)
 
 class Vmro3ZmController(PlotController):
-    def __init__(self, request):
-        super().__init__(request)
+    def __init__(self, jsonRequest):
+        super().__init__(jsonRequest)
         self.plotRequestor = Vmro3ZmRequestor()
+        self.plotParser = Vmro3ZmParser(self.jsonRequest)
 
 ############################################################
 #   Controller requiring info from local storage
 ############################################################
 class LocalController(Controller):
-    def __init__(self):
+    def __init__(self, ):
+        super().__init__()
+
+class DownloadController(LocalController):
+    def __init__(self, jsonRequest):
+        super().__init__()
+        
+class StatisticController(LocalController):
+    def __init__(self, jsonRequest):
         super().__init__()

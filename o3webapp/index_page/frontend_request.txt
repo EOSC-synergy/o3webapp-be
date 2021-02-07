@@ -38,6 +38,36 @@
  {"name":"lat_min","value":""},
  {"name":"lat_max","value":""}]
 =============================POST==================================
+/plot/models_info
+
+[{"name":"pType","value":""},
+ {"name":"model","value":""},
+ {"name":"begin","value":""},
+ {"name":"end","value":""},
+ {"name":"month","value":""},
+ {"name":"lat_min","value":""},
+ {"name":"lat_max","value":""}]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ =============================POST==================================
 /plot/t_M_V
 
 [{"name":"pType","value":"vmro3_zm"},

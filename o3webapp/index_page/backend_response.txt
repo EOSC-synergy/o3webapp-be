@@ -40,6 +40,36 @@ api_info.json
 ===============================================================
 
 
+[{
+    "info": null,
+    "model": "CCMI-1_U-LEEDS-UMSLIMCAT-senC2fGHG",
+    "tco3_return": {
+      "isdata": true,
+      "plot": {
+        "color": "black",
+        "style": "solid"
+      }
+    },
+    "tco3_zm": {
+      "isdata": true,
+      "plot": {
+        "color": "black",
+        "style": "solid"
+      }
+    },
+    "url": null,
+    "vmro3_zm": {
+      "isdata": false,
+      "plot": {
+        "color": "black",
+        "style": "solid"
+      }
+    }
+  }, ...]
+  
+===============================================================
+
+
 {"models":["CCMI-1_IPSL-senC2rcp85"],
  "vars":[{"name":"model","type":"array"},
          {"name":"begin","type":"integer"},
