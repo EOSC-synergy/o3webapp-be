@@ -1,6 +1,5 @@
 import json
 import enum
-import requests
 from plotData import PlotData
 
 # , default as ptype = 1
@@ -30,16 +29,13 @@ class InfoParser(Parser):
 class InfoUpateParser(InfoParser):
     pass
 
-    
 class TypeModelsVarsParser(InfoParser):
     def __init__(self, jsonRequest):
         super().__init__(jsonRequest)
-        # TODO set ptypeIndex = 0 global here
         self.jsonRequest = jsonRequest
-        
-        
 
     def parse_user_request(self):
+        # TODO set ptypeIndex = 0 global here
         return self.jsonRequest[0]['value']
 
     
@@ -56,11 +52,6 @@ class TypeModelsVarsParser(InfoParser):
         parameterArray = paraArray(completeJson, ptype)
         return list(map(varPattern, parameterArray))
     
-
-    
-
-    
-
 class DownloadParser(InfoParser):
     def __init__(self, jsonRequest):
         super().__init__(jsonRequest)
@@ -81,36 +72,38 @@ class PlotDataParser(Parser):
 class PlotParser(PlotDataParser):
     def __init__(self, jsonRequest):
         super().__init__(jsonRequest)
-        # TODO set ptypeIndex = 0 global here
         self.jsonRequest = jsonRequest
-        self.typeName = self.jsonRequest[0]['value']
+        # TODO set ptypeIndex = 0 global here
+        self.typeName = self.jsonRequest['pType']
+
+    def parse_ptype(self):
+        return self.typeName
 
     def parse_request_2_plotdata(self):
-        varData = {}
-        for i in range(1,len(self.jsonRequest)):
-            key = self.jsonRequest[i]['name']
-            value = self.jsonRequest[i]['value']
-            varData[key] = value
-        return PlotData(self.typeName, varData)
+        varData = self.jsonRequest
+        del varData['pType']
+        # TODO only one model can be parsed for now
+        #for i in range(1,len(self.jsonRequest)):
+        #    key = self.jsonRequest[i]['name']
+        #    value = self.jsonRequest[i]['value']
+        #    varData[key] = value
+        plotdata = PlotData(self.typeName, varData)
+        return plotdata
 
-    def fill_json_into_plotdata(plotJsonFlie, plotData):
-        
-    
+    def parse_json_2_plotdata(self, modelDataJsonFile, plotdata):
+        plotdata.get_modeldata().set_val_in_modelDict(modelDataJsonFile)
 
 class Tco3ZmParser(PlotParser):
     def __init__(self, jsonRequest):
         super().__init__(jsonRequest)
-        self.plotRequestor = Tco3ZmRequestor()
 
 class Tco3ReturnParser(PlotParser):
     def __init__(self, jsonRequest):
         super().__init__(jsonRequest)
-        self.plotRequestor = Tco3ReturnRequestor()
 
 class Vmro3ZmParser(PlotParser):
     def __init__(self, jsonRequest):
         super().__init__(jsonRequest)
-        self.plotRequestor = Vmro3ZmRequestor()
 
 class StatisticParser(PlotDataParser):
     def __init__(self):

@@ -24,8 +24,7 @@ class UserManager:
     # 2. Logging in as authenticated user
     def handle_process_on_homepage(self):
         if self.userRequest.method == 'GET':
-            apiInfoController = APIInfoController()
-            return apiInfoController.handle_process()
+            return UserManager.opDict['api_info'](self.jsonRequest).handle_process()
         else:
             return redirect(url_for('static', filename='plotpage.html'))
         

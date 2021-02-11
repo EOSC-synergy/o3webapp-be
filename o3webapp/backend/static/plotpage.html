@@ -2,6 +2,7 @@
 <html>
 <head>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script src="https://cdn.bokeh.org/bokeh/release/bokeh-1.1.0.min.js"></script>
 </head>
 <body>
 
@@ -31,7 +32,11 @@
 </form>
 
 <p id="request_url">Click on the submit button, and the plot type will be sent to the back-end "/plot".</p>
-<p id="response">Click on the submit button, and the plot type will be sent to the back-end "/plot".</p>
+<p id="o3as_plot">Click on the submit button, and the plot type will be sent to the back-end "/plot".
+
+    var jsonData = JSON.stringify($("#plot").serializeArray()); 
+              
+</p>
 
 <script>
 function sendJSON(){ 
@@ -43,14 +48,38 @@ function sendJSON(){
     xhr.open("POST", url, true); 
     xhr.setRequestHeader("Content-Type", "application/json"); 
     xhr.onreadystatechange = function () { 
-        if (xhr.readyState === 4 && xhr.status === 200) { 
-            document.getElementById("response").innerHTML = this.responseText;
+        if (xhr.readyState === 4 && xhr.status === 200) {
+            if(opID == "plot_test") {
+              Bokeh.embed.embed_item(this.responseText.json(), "o3as_plot");
+            } else {
+              document.getElementById("o3as_plot").innerHTML = this.responseText;
+            }
         } 
     }; 
 
-    var jsonData = JSON.stringify($("#plot").serializeArray()); 
+    var jsonData = JSON.stringify({"pType":"tco3_zm",
+                                    "models":[{"model":"CCMI-1_ACCESS-refC2",
+                                               "legends":{
+                                                    "color":"",
+                                                    "highlighted":""
+                                                }
+                                              },
+                                              {"model":"CCMI-1_CCCma-CMAM-refC2",
+                                               "legends":{
+                                                    "color":"",
+                                                    "highlighted":""
+                                                }
+                                              }
+                                             ],
+ "begin":"1959",
+ "end":"2100",
+ "month":["7","9"],
+ "lat_min":"-10",
+ "lat_max":"10"});
+
+
     document.getElementById("request_url").innerHTML = jsonData;
-    document.getElementById("response").innerHTML = "waiting for response";
+    document.getElementById("o3as_plot").innerHTML = "waiting for response";
     xhr.send(jsonData); 
 } 
 </script>

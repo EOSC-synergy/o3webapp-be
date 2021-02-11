@@ -1,5 +1,6 @@
 import requests
 import json
+from markupsafe import escape
 
 # Requestor, querying the info or data from O3as-API.
 class Requestor:
@@ -54,9 +55,42 @@ class PlotDataRequestor(Requestor):
         self.plotData = plotData
         self.url += 'plots/' + self.plotData.get_ptype_name()
         self.headers = {'Content-Type': 'application/json', 'Accept': 'application/json'}
-        self.varDict = self.plotData.get_vardata_dict()
-        r = requests.post(self.url, headers=self.headers, params=self.varDict)
+        self.params = self.prepare_params()
+        # TODO
+        #print(self.params)
+        self.url += "?" + self.params 
+        #print(self.url)
+        r = requests.post(self.url, headers=self.headers)
+        # TODO check requests url###############################################################################
+        # 
+        # %2C
+        
         return r.json()
+
+    def prepare_params(self):
+        
+        varDict = self.plotData.get_vardata_dict()
+        varDict["model"]=self.merge_array(varDict["model"])
+        varDict["month"]=self.merge_array(varDict["month"])
+        varStr = self.merge_dict(varDict)
+        return varStr
+    
+    def merge_dict(self, dict):
+        separator = "&"
+        equal = "="
+        elementsStr = ""
+        for k,v in dict.items():
+            elementsStr += k + equal + v + separator
+        elementsStr = elementsStr[:-len(separator)]
+        return elementsStr
+
+    def merge_array(self, array):
+        separator = "%2C"
+        elementsStr = ""
+        for element in array:
+            elementsStr += element + separator
+        elementsStr = elementsStr[:-len(separator)]
+        return elementsStr
     
 class Tco3ZmRequestor(PlotDataRequestor):
     def __init__(self):
