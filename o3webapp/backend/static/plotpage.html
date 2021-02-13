@@ -59,15 +59,15 @@ function sendJSON(){
 
     var jsonData = JSON.stringify({"pType":"tco3_zm",
                                     "models":[{"model":"CCMI-1_ACCESS-refC2",
-                                               "legends":{
-                                                    "color":"",
-                                                    "highlighted":""
+                                               "style":{
+                                                    "color":"red",
+                                                    "highlighted":"1"
                                                 }
                                               },
                                               {"model":"CCMI-1_CCCma-CMAM-refC2",
-                                               "legends":{
-                                                    "color":"",
-                                                    "highlighted":""
+                                               "style":{
+                                                    "color":"green",
+                                                    "highlighted":"2"
                                                 }
                                               }
                                              ],
@@ -75,7 +75,8 @@ function sendJSON(){
  "end":"2100",
  "month":["7","9"],
  "lat_min":"-10",
- "lat_max":"10"});
+ "lat_max":"10",
+ "output":"json"});
 
 
     document.getElementById("request_url").innerHTML = jsonData;

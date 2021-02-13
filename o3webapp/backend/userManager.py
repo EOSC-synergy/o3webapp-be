@@ -15,10 +15,13 @@ class UserManager:
               'models_info': (lambda jsonRequest: ModelsInfoController()),
               't_M_V': (lambda jsonRequest:TypeModelsVarsController(jsonRequest)),
               'plot': (lambda jsonRequest:PlotController(jsonRequest))}
+    #TODO add opID for download and mean_median_trend etc.
 
     def __init__(self, userRequest):
         self.userRequest = userRequest
         self.jsonRequest = userRequest.get_json()
+    
+    #TODO handle process on corresponding pages.
 
     # 1. Checking the api_info
     # 2. Logging in as authenticated user

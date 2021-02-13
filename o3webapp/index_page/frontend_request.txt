@@ -20,33 +20,33 @@
 =============================POST==================================
 /plot/api_info
 
-[{"name":"pType","value":""},
- {"name":"model","value":""},
- {"name":"begin","value":""},
- {"name":"end","value":""},
- {"name":"month","value":""},
- {"name":"lat_min","value":""},
- {"name":"lat_max","value":""}]
+
+
+
+
+
+
+
 =============================POST==================================
 /plot/pType
 
-[{"name":"pType","value":""},
- {"name":"model","value":""},
- {"name":"begin","value":""},
- {"name":"end","value":""},
- {"name":"month","value":""},
- {"name":"lat_min","value":""},
- {"name":"lat_max","value":""}]
+
+
+
+
+
+
+
 =============================POST==================================
 /plot/models_info
 
-[{"name":"pType","value":""},
- {"name":"model","value":""},
- {"name":"begin","value":""},
- {"name":"end","value":""},
- {"name":"month","value":""},
- {"name":"lat_min","value":""},
- {"name":"lat_max","value":""}]
+
+
+
+
+
+
+
 
 
 
@@ -70,68 +70,45 @@
  =============================POST==================================
 /plot/t_M_V
 
-[{"name":"pType","value":"vmro3_zm"},
- {"name":"model","value":""},
- {"name":"begin","value":""},
- {"name":"end","value":""},
- {"name":"month","value":""},
- {"name":"lat_min","value":""},
- {"name":"lat_max","value":""}]
+{"pType":"vmro3_zm"}
+
+
+
+
+
+
 =============================POST==================================
 /plot/t_M_V
 
-[{"name":"pType","value":"tco3_return"},
- {"name":"model","value":""},
- {"name":"begin","value":""},
- {"name":"end","value":""},
- {"name":"month","value":""},
- {"name":"lat_min","value":""},
- {"name":"lat_max","value":""}]
+{"pType":"tco3_return"}
+
+
+
+
+
+
 =============================POST==================================
 /plot/t_M_V
 
- [{"name":"pType","value":"tco3_zm"},
-  {"name":"model","value":""},
-  {"name":"begin","value":""},
-  {"name":"end","value":""},
-  {"name":"month","value":""},
-  {"name":"lat_min","value":""},
-  {"name":"lat_max","value":""}]
+{"pType":"tco3_zm"}
+
+
+
+
+
+
 =============================POST==================================
 /plot/plot
 
-[{"name":"pType","value":"tco3_zm"},
- {"name":"model","value":"CCMI-1_ACCESS-refC2"},
- {"name":"begin","value":"1959"},
- {"name":"end","value":"2100"},
- {"name":"month","value":"7"},
- {"name":"lat_min","value":"-10"},
- {"name":"lat_max","value":"10"}]
- =============================POST==================================
-/plot/plot
-
-[{"name":"pType","value":"tco3_return"},
- {"name":"model","value":"CCMI-1_ACCESS-refC2"},
- {"name":"begin","value":"1959"},
- {"name":"end","value":"2100"}]
-
-
-
-  cPOST==================================
-/plot/plot
-
-
-
- 
 {"pType":"tco3_zm",
  "models":[{"model":"CCMI-1_ACCESS-refC2"
-             "legends":{
+             "style":{
                         "color":"",
                         "highlighted":""
                         }
             },
             {"model":"CCMI-1_CCCma-CMAM-refC2"
-             "legends":{
+             "style":{
                         "color":"",
                         "highlighted":""
                         }
@@ -141,8 +118,54 @@
  "end":"2100",
  "month":["7","9"],
  "lat_min":"-10",
- "lat_max":"10"}
+ "lat_max":"10"
+ "output":"json"}
 
 
 
+
+
+
+
+ =============================POST==================================
+/plot/plot
+
+{"pType":"tco3_return",
+ "models":[{"model":"CCMI-1_ACCESS-refC2"
+             "style":{
+                        "color":"",
+                        "highlighted":""
+                        }
+            },
+            {"model":"CCMI-1_CCCma-CMAM-refC2"
+             "style":{
+                        "color":"",
+                        "highlighted":""
+                        }
+            }
+           ],
+ "begin":"1959",
+ "end":"2100"
+ "output":"json"}
+==============================POST==================================
+/plot/plot
+
+{"pType":"vmro3_zm",
+ "models":[{"model":"CCMI-1_ACCESS-refC2"
+             "style":{
+                        "color":"",
+                        "highlighted":""
+                        }
+            },
+            {"model":"CCMI-1_CCCma-CMAM-refC2"
+             "style":{
+                        "color":"",
+                        "highlighted":""
+                        }
+            }
+           ],
+ "begin":"1959",
+ "end":"2100"
+ "output":"json"}
+==============================POST==================================
 

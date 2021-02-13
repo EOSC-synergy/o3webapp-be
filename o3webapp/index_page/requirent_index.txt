@@ -7,12 +7,9 @@
     #plot_types_request: get all available plot types 
     #models_info_request: get all available models with short info
     #type_model_var_request: get model-list available for a certain plot type, and vars needed by this plot type.
-    #plot_tco3_zm_request: request the info for drawing the plot according to tco3_zm.
-    #plot_vmro3_zm_request: request the info for drawing the plot according to vmro3_zm.
-    #plot_tco3_return_request: request the info for drawing the plot according to tco3_return.
-
-
+    #plot: request the info for drawing the plot according to the plot type.
     #download_request: dont need to access the o3asAPI, because we will backup the recent plot in our local storage.
+    #mean_median_trend_request: get the figure representing mean, median, trend of the current plot.
 }
 
 

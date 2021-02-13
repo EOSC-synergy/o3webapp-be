@@ -14,8 +14,8 @@ from plotter import Plotter
 # 6. passing the merged complete plot-data to the ploter responsible for drawing the figure.        (plot-process)
 # 7. responding the resulting plot or file to the user-manager.
 class Controller:
-    def __init__(self):
-        pass
+    def __init__(self, jsonRequest):
+        self.jsonRequest = jsonRequest
     
     def handle_process(self):
         pass
@@ -23,8 +23,7 @@ class Controller:
 #   Controller requiring info from O3as-API
 ############################################################
 class RemoteController(Controller):
-    def __init__(self):
-        super().__init__()
+    pass
 
 class InfoUpateController(RemoteController):
 
@@ -32,31 +31,34 @@ class InfoUpateController(RemoteController):
         return jsonify(self.infoRequestor.request_info())
 
 class APIInfoController(InfoUpateController):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, jsonRequest):
+        super().__init__(jsonRequest)
         self.infoRequestor = APIInfoRequestor()
         
 class ModelsInfoController(InfoUpateController):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, jsonRequest):
+        super().__init__(jsonRequest)
         self.infoRequestor = ModelsInfoRequestor()
 
 class PlotypesController(InfoUpateController):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, jsonRequest):
+        super().__init__(jsonRequest)
         self.infoRequestor = PlotypesRequestor()
         
 class TypeModelsVarsController(RemoteController):
     def __init__(self, jsonRequest):
-        super().__init__()
-        self.typeModelsVarsParser = TypeModelsVarsParser(jsonRequest)
+        super().__init__(jsonRequest)
+        self.typeModelsVarsParser = TypeModelsVarsParser()
         self.typeModelsVarsRequestor = TypeModelsVarsRequestor()
 
+    # I: <'pType': 'tco3_zm/vmro3_zm/tco3_return'>
+    # O: <<'models': []>, <'vars': []>>
     def handle_process(self):
-        typeName = self.typeModelsVarsParser.parse_user_request()
+        typeName = self.typeModelsVarsParser.parse_user_request(self.jsonRequest)
         modelsJson = self.typeModelsVarsRequestor.request_models(typeName)
         completeJson = self.typeModelsVarsRequestor.request_vars()
         varsJson = self.typeModelsVarsParser.parse_varsjson_file(completeJson, typeName)
+        #TODO structure of json response to frontend
         return jsonify({'models': modelsJson, 'vars': varsJson})
 
 class PlotController(RemoteController):
@@ -66,18 +68,17 @@ class PlotController(RemoteController):
                           'tco3_return': (lambda jsonRequest: Tco3ReturnController(jsonRequest))}
 
     def __init__(self, jsonRequest):
-        super().__init__()
-        self.jsonRequest = jsonRequest
-        self.plotParser = PlotParser(self.jsonRequest)
+        super().__init__(jsonRequest)
+        self.plotParser = PlotParser()
         self.plotter = Plotter()
 
     def handle_process(self):
-        typeName = self.plotParser.parse_ptype()
+        typeName = self.plotParser.parse_ptype(self.jsonRequest)
         assignedPlotController = PlotController.plotControllerDict[typeName](self.jsonRequest)
         return assignedPlotController.handle_plot_process()
 
     def handle_plot_process(self):
-        self.plotData = self.plotParser.parse_request_2_plotdata()
+        self.plotData = self.plotParser.parse_request_2_plotdata(self.jsonRequest)
         # TODO check printing plotdata
         self.plotData.print()
         modelDataJsonFile = self.plotRequestor.request_model_data(self.plotData)
@@ -89,31 +90,29 @@ class Tco3ZmController(PlotController):
     def __init__(self, jsonRequest):
         super().__init__(jsonRequest)
         self.plotRequestor = Tco3ZmRequestor()
-        self.plotParser = Tco3ZmParser(self.jsonRequest)
+        self.plotParser = Tco3ZmParser()
 
 class Tco3ReturnController(PlotController):
     def __init__(self, jsonRequest):
         super().__init__(jsonRequest)
         self.plotRequestor = Tco3ReturnRequestor()
-        self.plotParser = Tco3ReturnParser(self.jsonRequest)
+        self.plotParser = Tco3ReturnParser()
 
 class Vmro3ZmController(PlotController):
     def __init__(self, jsonRequest):
         super().__init__(jsonRequest)
         self.plotRequestor = Vmro3ZmRequestor()
-        self.plotParser = Vmro3ZmParser(self.jsonRequest)
+        self.plotParser = Vmro3ZmParser()
 
 ############################################################
 #   Controller requiring info from local storage
 ############################################################
 class LocalController(Controller):
-    def __init__(self, ):
-        super().__init__()
+    pass
 
 class DownloadController(LocalController):
-    def __init__(self, jsonRequest):
-        super().__init__()
+    pass
         
+#TODO for mean, median, trend
 class StatisticController(LocalController):
-    def __init__(self, jsonRequest):
-        super().__init__()
+    pass

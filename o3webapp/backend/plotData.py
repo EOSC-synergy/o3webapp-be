@@ -8,9 +8,17 @@ class PlotType(enum.Enum):
    vmro3_zm = 2
    tco3_return = 3
 
+# three plot types, default as tco3_zm = 1
+class OutputFormat(enum.Enum):
+   json = 1
+   pdf = 2
+   cvs = 3
+   png = 4
+
 ####################################################
 # PlotData :
 # --ptype
+# --output
 # --varData
 # --modelData
 ####################################################
@@ -18,16 +26,16 @@ class PlotData:
     def __init__(self):
         self.__init__(1, {})
 
-    def __init__(self, ptype, varData):
+    def __init__(self, ptype, varData, output):
         self.ptype = PlotType[ptype]
+        self.output = OutputFormat[output]
         self.init_var_model_data(varData)
 
     def init_var_model_data(self, varData):
+        #TODO move to PlotParser
         modeldata = varData['models']
-        #todo
         del varData['models']
         varData['model'] = [modelDict['model'] for modelDict in modeldata]
-        
         self.varData = VarData(varData)
         self.modelData = Data(modeldata)
 
@@ -86,15 +94,16 @@ class Data:
         self.modelDict[modelName] = model
 
     def set_para_in_modelDict(self, paraArr):
+        #TODO move to PlotParser
         # TODO name of the dimensions needed
         for para in paraArr:
-            self.add_model(Model(para["model"],"x","y"))
-            # TODO init the para as legends
+            self.add_model(Model(para['model'],"x","y",para['style']))
 
     # add val into the existing models,
     # assuming that all the models have been initialized 
     # by setting para from user-request
     def set_val_in_modelDict(self, dataArr):
+        #TODO move to PlotParser
         for data in dataArr:
             self.modelDict[data["model"]].set_val_cds(data)
 
@@ -118,10 +127,10 @@ class Model:
     def __init__(self, modelName):
         self.__init__(modelName, Model.defaultX, Model.defaultY)
 
-    def __init__(self, modelName, coordX, coordY):
+    def __init__(self, modelName, coordX, coordY, paraDict):
         self.name = modelName
         self.val = ModelVal(coordX, coordY)
-        self.para = ModelPara()
+        self.para = ModelPara(paraDict)
 
     def get_name(self):
         return self.name
@@ -146,6 +155,7 @@ class Model:
 
 class ModelVal:
     def __init__(self, coordX, coordY):
+        #TODO replace cds by pd.dataframe
         self.cds = ColumnDataSource({coordX:[], coordY:[]})
 
     def get_coord(self):
@@ -163,8 +173,10 @@ class ModelVal:
         return self.cds.to_json_string(False)
                 
 class ModelPara:
-    def __init__(self):
-        pass
+    def __init__(self, paraDict):
+        #TODO bokeh type for style
+        self.color = paraDict['color']
+        self.highlighted = paraDict['highlighted']
 
     def __str__(self):
-        return ""
+        return "{color: " + self.color + ",highlighted: " + self.highlighted + "}"

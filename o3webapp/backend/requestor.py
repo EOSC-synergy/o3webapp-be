@@ -48,27 +48,16 @@ class TypeModelsVarsRequestor(Requestor):
         return requests.get(typeVarsUrl).json()
 
 class PlotDataRequestor(Requestor):
-    def __init__(self):
-        super().__init__()
         
     def request_model_data(self, plotData):
         self.plotData = plotData
-        self.url += 'plots/' + self.plotData.get_ptype_name()
         self.headers = {'Content-Type': 'application/json', 'Accept': 'application/json'}
         self.params = self.prepare_params()
-        # TODO
-        #print(self.params)
-        self.url += "?" + self.params 
-        #print(self.url)
+        self.url += 'plots/' + self.plotData.get_ptype_name() + "?" + self.params 
         r = requests.post(self.url, headers=self.headers)
-        # TODO check requests url###############################################################################
-        # 
-        # %2C
-        
         return r.json()
 
     def prepare_params(self):
-        
         varDict = self.plotData.get_vardata_dict()
         varDict["model"]=self.merge_array(varDict["model"])
         varDict["month"]=self.merge_array(varDict["month"])
@@ -93,13 +82,10 @@ class PlotDataRequestor(Requestor):
         return elementsStr
     
 class Tco3ZmRequestor(PlotDataRequestor):
-    def __init__(self):
-        super().__init__()
+    pass
 
 class Tco3ReturnRequestor(PlotDataRequestor):
-    def __init__(self):
-        super().__init__()
+    pass
 
 class Vmro3ZmRequestor(PlotDataRequestor):
-    def __init__(self):
-        super().__init__()
+    pass

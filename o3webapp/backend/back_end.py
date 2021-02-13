@@ -28,7 +28,7 @@ def handle_request_on_plotpage(opID):
 def enter_plotpage():
     userManager = UserManager(request)
     return userManager.handle_process_on_plotpage("api_info")
-
+#TODO url of frontend pages
 #with app.test_request_context():
     #print(url_for('/plot/', opID ='api_info'))
     #print(url_for('static', filename='plotpage.html'))
