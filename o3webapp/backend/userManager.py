@@ -10,9 +10,9 @@ from controller import APIInfoController,PlotypesController,ModelsInfoController
 
 class UserManager:
 
-    opDict = {'api_info': (lambda jsonRequest: APIInfoController()),
-              'p_type': (lambda jsonRequest: PlotypesController()),
-              'models_info': (lambda jsonRequest: ModelsInfoController()),
+    opDict = {'api_info': (lambda jsonRequest: APIInfoController(jsonRequest)),
+              'p_type': (lambda jsonRequest: PlotypesController(jsonRequest)),
+              'models_info': (lambda jsonRequest: ModelsInfoController(jsonRequest)),
               't_M_V': (lambda jsonRequest:TypeModelsVarsController(jsonRequest)),
               'plot': (lambda jsonRequest:PlotController(jsonRequest))}
     #TODO add opID for download and mean_median_trend etc.
@@ -36,8 +36,10 @@ class UserManager:
     # 3. Updating the info of a specific model
     # 4. Updating the available model list and the required variables of the chosen plot type
     # 5. Plotting the figure according to the chosen plot type and variables for the chosen models
-    def handle_process_on_plotpage(self, opID):
+    ## TODO temporarily add parameter: format
+    def handle_process_on_plotpage(self, opID, format):
         if self.userRequest.method == 'POST':
+            self.jsonRequest["output"] = format ## TODO
             return UserManager.opDict[opID](self.jsonRequest).handle_process()
         else:
             return redirect(url_for('static', filename='plotpage.html'))

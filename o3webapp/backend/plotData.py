@@ -1,5 +1,7 @@
 import enum
 from bokeh.models import ColumnDataSource
+from bokeh.core.property.color import Color
+
 from flask import jsonify
 
 # three plot types, default as tco3_zm = 1
@@ -12,7 +14,7 @@ class PlotType(enum.Enum):
 class OutputFormat(enum.Enum):
    json = 1
    pdf = 2
-   cvs = 3
+   csv = 3
    png = 4
 
 ####################################################
@@ -23,9 +25,6 @@ class OutputFormat(enum.Enum):
 # --modelData
 ####################################################
 class PlotData:
-    def __init__(self):
-        self.__init__(1, {})
-
     def __init__(self, ptype, varData, output):
         self.ptype = PlotType[ptype]
         self.output = OutputFormat[output]
@@ -39,8 +38,17 @@ class PlotData:
         self.varData = VarData(varData)
         self.modelData = Data(modeldata)
 
+    def get_ptype(self):
+        return self.ptype
+
     def get_ptype_name(self):
         return self.ptype.name
+
+    def get_output(self):
+        return self.output
+
+    def get_output_format(self):
+        return self.output.name
 
     def get_vardata(self):
         return self.varData
@@ -73,9 +81,6 @@ class VarData:
         return self.varDataDict.__str__()
 
 class Data:
-    def __init__(self):
-        self.modelDict = {}
-        
     def __init__(self, modeldata):
         self.modelDict = {}
         self.set_para_in_modelDict(modeldata)
@@ -120,12 +125,9 @@ class Data:
 #           val2X : val2Y, ...}
 # --paras :
 #################################################
-# TODO test CDS
 class Model:
     defaultX = "x"
     defaultY = "y"
-    def __init__(self, modelName):
-        self.__init__(modelName, Model.defaultX, Model.defaultY)
 
     def __init__(self, modelName, coordX, coordY, paraDict):
         self.name = modelName
@@ -148,6 +150,12 @@ class Model:
 
     def get_para(self):
         return self.para
+
+    def get_para_color(self):
+        return self.para.get_color()
+
+    def get_para_highlighted(self):
+        return self.para.get_highlighted()
 
     def __str__(self):
         return "{val: " + self.val.__str__() + ", " + \
@@ -174,9 +182,22 @@ class ModelVal:
                 
 class ModelPara:
     def __init__(self, paraDict):
-        #TODO bokeh type for style
+        # TODO bokeh type for style
+        self.color = Color()
         self.color = paraDict['color']
+        # self.color = "#a240a2"
+        # self.color = (100, 100, 255)
+        # self.color = (100, 100, 255, 0.5)
         self.highlighted = paraDict['highlighted']
+        # TODO hatch style
+
+
+    def get_color(self):
+        return self.color
+
+    def get_highlighted(self):
+        return self.highlighted
 
     def __str__(self):
-        return "{color: " + self.color + ",highlighted: " + self.highlighted + "}"
+        return "{color: " + self.color + ", " + \
+               "highlighted: " + self.highlighted + "}"

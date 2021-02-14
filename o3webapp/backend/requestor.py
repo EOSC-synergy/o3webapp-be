@@ -1,6 +1,6 @@
 import requests
 import json
-from markupsafe import escape
+from plotData import PlotData
 
 # Requestor, querying the info or data from O3as-API.
 class Requestor:
