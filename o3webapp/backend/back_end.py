@@ -1,11 +1,13 @@
 from flask import Flask,request
 from userManager import UserManager
+from flask_cors import CORS
 
 # Backend interface, which is responsible for :
 # 1. listening to the user request from frontend,
 # 2. passing all the information following the url
 # 3. and the request-object to the user manager handling request with the corresponding process.
 app = Flask(__name__)
+cors = CORS(app)
 
 ########################################
 # url list:                             
