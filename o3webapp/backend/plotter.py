@@ -59,11 +59,8 @@ class Plotter:
                 headers={"Content-Disposition": "attachment;filename={}".format("plot.png")})
 
     def do_export(self, data, format):
-
         # svg = dataHub.trackCompositor.render()
-
         # converter = export.getExportConverter(dataHub.args, format)
-
         if format == "svg":
             mimetype = "image/svg+xml"
             # data = svg
@@ -75,10 +72,8 @@ class Plotter:
             # data = export.convertSVG(svg, "pdf", converter)
         else:
             raise Exception("unknown format")
-
         response = Response(data, mimetype=mimetype,
             headers={"Content-Disposition": "attachment;filename={}".format("plot.png")})
-
         return response
 
 
@@ -212,10 +207,10 @@ class ZmPlotter(Plotter):
         #    return Math.floor(tick) + " + " + (tick % 1).toFixed(2)
         #    """)
         plot.xaxis.formatter=DatetimeTickFormatter(
-                hours=["%d %B %Y"],
-                days=["%d %B %Y"],
-                months=["%d %B %Y"],
-                years=["%d %B %Y"],
+                hours = ['%Hh', '%H:%M'],
+                days = ['%m/%d/%Y', '%a%d'],
+                months = ['%m/%Y', '%b %Y'],
+                years = ['%Y']
             )
         plot.yaxis.major_label_text_color = "orange"
         # orientation
