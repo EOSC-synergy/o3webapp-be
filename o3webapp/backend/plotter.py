@@ -143,7 +143,7 @@ class ZmPlotter(Plotter):
         self.setup_axis(p)
 
         p.toolbar.autohide = True
-        show(p)
+        #show(p)
         return p
         #return redirect(url_for('static', filename='o3as_plot.html'))
         #return file_html(p, CDN, "my plot")
