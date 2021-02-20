@@ -54,9 +54,13 @@ def handle_request_for_download(format):
 #/model_list/<pType> -> returns the available models for the given plottype
 @app.route('/model_list/<pType>', methods=['GET', 'POST'])
 def handle_request_for_typemv(pType):
+    # TODO debug
+    print(request.method)
     userManager = UserManager(request)
-    return userManager.handle_process_on_plotpage("t_M_V", "json") ## TODO
-
+    r = userManager.handle_process_on_plotpage("t_M_V", "json") ## TODO
+    # TODO debug
+    print(r)
+    return r
 #/model_info/<model> returns the info for the specified model
 
 
