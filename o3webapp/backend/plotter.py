@@ -3,6 +3,7 @@ from flask import url_for,redirect, Response
 import json
 from math import pi
 import numpy as np
+from scipy import signal
 import pdfkit
 
 # bokeh plot
@@ -76,6 +77,22 @@ class Plotter(ABC):
             data = json.dumps(json_item(layout))
             return Response(data, mimetype='application/json')
 
+    def boxcar_easy(self, window, data):
+        boxcar = np.ones(window)
+        extLen = len(data)+2*window
+        extData = np.ones(extLen)
+        extData[:window] = data[0]
+        extData[extLen-window:] = data[len(data)-1]
+        extData[window:extLen-window] = data
+        boxcar_extData = signal.convolve(extData/np.sum(boxcar), boxcar, mode='same')
+        return boxcar_extData[window:extLen-window]
+
+    def boxcar_mirror(self, window, data):
+        boxcar = np.ones(window)
+        sgnl = np.r_[data[window-1:0:-1],data,data[-2:-window-1:-1]]
+        boxcar_data = signal.convolve(sgnl/np.sum(boxcar), boxcar, mode='same')
+        return boxcar_data[window-1:-(window-1)]
+
 # Plotter, 
 # plotting the data in *-zm plot type, time -> messurement,
 # whose x axis represents the time.
@@ -95,7 +112,7 @@ class ZmPlotter(Plotter):
     def plot_data(self, plotdata):
         self.init_plotter(plotdata)
 
-        p = figure(plot_width=700, plot_height=300, title=self.plotType.name, x_axis_type="datetime")
+        p = figure(plot_width=1500, plot_height=500, title=self.plotType.name, x_axis_type="datetime")
 
         ###################  mmt block #####################
         #+----------------+--------------+----------------+#
@@ -272,7 +289,6 @@ class ZmPlotter(Plotter):
         plotArr = []
         for mmtIndex in range(maxBoxNum):
             yArr = np.zeros(len(df['x']))
-            yArr[:] = mmtIndex*100
             modelDict = {'x':df['x'], 'y':yArr}
             mmtModel = ColumnDataSource(data=modelDict)
             mmtPlot = plot.line('x', 'y', source=mmtModel, line_dash="4 0", line_width=2, line_color=mmtPalette[mmtIndex], line_alpha=0.6, visible=False)
@@ -281,12 +297,13 @@ class ZmPlotter(Plotter):
         return {'mmtModelArr':modelArr, 'mmtPlotArr':plotArr}
 
     def plot_model(self, plot, model):
-        #mypalette = Spectral11[0:100]
         name = model.get_name()
         color = model.get_para_color()
         highlighted = model.get_para_highlighted()
         muted_alpha = 0.8 * float(highlighted) + 0.2
-        df = pd.DataFrame(data=model.get_val_cds())
+        data = model.get_val_cds()
+        data['y'] = self.boxcar_mirror(10, data['y'])
+        df = pd.DataFrame(data=data)
         df['x'] = pd.to_datetime(df['x'])
         return plot.line(df['x'], df['y'], line_dash="4 0", line_width=1,
                         line_color=color, line_alpha=0.5, muted_color=color, muted_alpha=muted_alpha)
