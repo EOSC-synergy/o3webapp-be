@@ -2,37 +2,37 @@ from plotData import PlotData, PlotType, OutputFormat
 from flask import url_for,redirect, Response
 import json
 from math import pi
+import numpy as np
+import pdfkit
 
 # bokeh plot
 from bokeh.core.properties import String, Instance
 import pandas as pd
+from pandas import Series,DataFrame
 from datetime import datetime as dt
 from bokeh.models import ColumnDataSource, Legend, LegendItem, CustomJS
 from bokeh.models import DatetimeTickFormatter, FuncTickFormatter, PrintfTickFormatter, NumeralTickFormatter
 from bokeh.models import Button, Panel, Tabs, RadioButtonGroup, Div, Slider, TextInput
-from bokeh.layouts import column, row
+from bokeh.layouts import column, row, WidgetBox, widgetbox
 from bokeh.plotting import figure, output_file, show, curdoc
 from bokeh.events import ButtonClick, Tap
+from bokeh.palettes import Spectral11
 # bokeh io
-from bokeh.io import show, output, export_png
+from bokeh.io import show, output, export_png, export_svgs
 from bokeh.embed import json_item,file_html
 from bokeh.resources import CDN
+from io import StringIO
 
-#TODO######################################################
-import numpy as np
-from bokeh.palettes import Spectral11
-from pandas import Series,DataFrame
-from bokeh.layouts import WidgetBox, widgetbox
-#TODO#######################################################
+from abc import ABC, abstractmethod
 
 # Plotter, 
 # plotting the data stored within the plotData
 # considering the parameter for variables and legends.
-class Plotter:
+class Plotter(ABC):
 
-    plotterDict = {'tco3_zm': (lambda plotdata: Tco3ZmPlotter(plotdata)),
-                   'vmro3_zm': (lambda plotdata: Vmro3ZmPlotter(plotdata)),
-                   'tco3_return': (lambda plotdata: Tco3ReturnPlotter(plotdata))}
+    @abstractmethod
+    def plot_data(self, plotdata):
+        pass
 
     def init_plotter(self, plotdata):
         self.modelDict = plotdata.get_modeldata_dict()
@@ -40,51 +40,62 @@ class Plotter:
         self.plotType = plotdata.get_ptype()
         self.output = plotdata.get_output()
 
-    def plot_data(self, plotdata):
-        typeName = plotdata.get_ptype_name()
-        assignedPlotter = Plotter.plotterDict[typeName](plotdata)
-        #return assignedPlotter.plot_data_process_test()
-        plot = assignedPlotter.plot_data_process()
+    @abstractmethod
+    def build_models_dict(self):
+        pass
 
-        # TODO convert plot into required format
-        output = plotdata.get_output()
-        if output == OutputFormat["json"]:
-            data = json.dumps(json_item(plot))
-            return Response(data, mimetype='application/json')
-        elif output == OutputFormat["png"]:
-            Plot.background_fill_color = None
-            Plot.border_fill_color = None
+    def do_export(self, layout, plot):
+        if self.output == OutputFormat["csv"]:
+            df = pd.DataFrame(self.build_models_dict())
+            dfbuffer = StringIO()
+            df.to_csv(dfbuffer, encoding='utf-8', index=False)
+            dfbuffer.seek(0)
+            data = dfbuffer.getvalue()
+            return Response(data, mimetype="text/csv",
+                headers={"Content-Disposition": "attachment;filename={}".format("plot.csv")})
+        elif self.output == OutputFormat["png"]:
+            plot.background_fill_color = None
+            plot.border_fill_color = None
             data = export_png(plot, filename="plot.png")
             return Response(data, mimetype="image/png",
                 headers={"Content-Disposition": "attachment;filename={}".format("plot.png")})
-
-    def do_export(self, data, format):
-        # svg = dataHub.trackCompositor.render()
-        # converter = export.getExportConverter(dataHub.args, format)
-        if format == "svg":
-            mimetype = "image/svg+xml"
-            # data = svg
-        elif format == "png":
-            mimetype = "image/png"
-            # data = export.convertSVG(svg, "png", converter)
-        elif format == "pdf":
-            mimetype = "application/pdf"
-            # data = export.convertSVG(svg, "pdf", converter)
+        elif self.output == OutputFormat["svg"]:
+            plot.background_fill_color = None
+            plot.border_fill_color = None
+            plot.output_backend = "svg"
+            data = export_svgs(plot, filename="plot.svg")
+            return Response(data, mimetype="image/svg+xml",
+                headers={"Content-Disposition": "attachment;filename={}".format("plot.svg")})
+#        elif self.output == OutputFormat["pdf"]:
+#            output_file("static/o3as_plot.html")
+#            show(plot)
+#            data = pdfkit.from_file('static/o3as_plot.html', 'plot.pdf')
+#            return Response(data, mimetype="application/pdf",
+#                headers={"Content-Disposition": "attachment;filename={}".format("plot.pdf")})
         else:
-            raise Exception("unknown format")
-        response = Response(data, mimetype=mimetype,
-            headers={"Content-Disposition": "attachment;filename={}".format("plot.png")})
-        return response
+            data = json.dumps(json_item(layout))
+            return Response(data, mimetype='application/json')
 
 # Plotter, 
 # plotting the data in *-zm plot type, time -> messurement,
 # whose x axis represents the time.
 class ZmPlotter(Plotter):
+    mmtLabels = ["mean", "median", "trend"]
 
-    def plot_data_process(self):
-        output_file("static/o3as_plot.html")
-        
-        p = figure(plot_width=800, plot_height=250, title=self.plotType.name, x_axis_type="datetime")
+    def build_models_dict(self):
+        modelsDict = {}
+        firstModelData = self.modelList[0].get_val_cds()
+        modelsDict['Time'] = firstModelData['x']
+        for model in self.modelList:
+            modelName = model.get_name()
+            modelData = model.get_val_cds()
+            modelsDict[modelName] = modelData['y']
+        return modelsDict
+
+    def plot_data(self, plotdata):
+        self.init_plotter(plotdata)
+
+        p = figure(plot_width=700, plot_height=300, title=self.plotType.name, x_axis_type="datetime")
 
         ###################  mmt block #####################
         #+----------------+--------------+----------------+#
@@ -105,8 +116,7 @@ class ZmPlotter(Plotter):
         maxBoxNum = 5
         maxLegendNum = 5
         ## mmt block header
-        mmtLabels = ["tco3_zm", "vmro3_zm", "tco3_return"]
-        mmtButtonGroup = RadioButtonGroup(labels=mmtLabels)
+        mmtButtonGroup = RadioButtonGroup(labels=ZmPlotter.mmtLabels)
         boxNum = ["number" for i in range(maxBoxNum)]
         boxActivity = ["activity" for i in range(maxBoxNum)]
         mmtBoxNum = RadioButtonGroup(labels=boxNum, active=0, visible=False)
@@ -119,12 +129,13 @@ class ZmPlotter(Plotter):
         boxHeaderW = 100
         mmtLegendH = 20
         mmtLegendW = 400
+        #TODO add button beside the box title for color-div and remove-option of the box
         mmtLegendBoxArr = self.setup_mmt_legendboxArr(maxBoxNum, maxLegendNum)
         mmtModelPlotArr = self.plot_mmt(maxBoxNum, p)
         ## mmt block
         mmtLegendBlock = column(mmtLegendBlockHead, mmtLegendBoxArr)
         mmtButtonGroup.js_on_click(CustomJS(args=dict(mmtLegendBlock=mmtLegendBlock,
-            mmtLabels=mmtLabels, height=mmtLegendH, width=boxHeaderW, maxBoxNum=maxBoxNum, 
+            mmtLabels=ZmPlotter.mmtLabels, height=mmtLegendH, width=boxHeaderW, maxBoxNum=maxBoxNum, 
             selColor=selectedBoxColor, defaultColor=defaultBoxColor), code="""
                 if(cb_obj.active == 'None') return;
                 var blockHeader = (mmtLegendBlock.children)[0].children;
@@ -175,19 +186,18 @@ class ZmPlotter(Plotter):
                     """))
             for legendIndex in range(1, maxLegendNum):
                 legend = legendArr[legendIndex]
-                # TODO legend.js_on_click to delete #######################################
+                # TODO legend.js_on_click to delete model #######################################
                 legend.js_on_click(CustomJS(args=dict(mmtBlockHead=mmtLegendBlockHead,
                     mmtBoxArr=mmtLegendBoxArr, bgColor=bgColor, boxIndex=legendIndex), code="""
                         """))
 
-
         # ROW_1 :: p + legends #######################################################################
-                        
         items = []
         for name, model in self.modelDict.items():
             renderer = self.plot_model(p, model)
             item = LegendItem(label=name, renderers=[renderer])
-            renderer_cb = CustomJS(args=dict(mmtLegendBlock=mmtLegendBlock, mmtModelArr=mmtModelPlotArr['mmtModelArr'],
+            renderer_cb = CustomJS(args=dict(mmtLegendBlock=mmtLegendBlock, 
+                mmtModelArr=mmtModelPlotArr['mmtModelArr'], mmtPlotArr=mmtModelPlotArr['mmtPlotArr'],
                 height=mmtLegendH, width=mmtLegendW, maxLegendNum=maxLegendNum, 
                 legendName=name, model=model.get_val_cds(), legendColor=renderer.glyph.line_color),
                 code="""
@@ -211,12 +221,15 @@ class ZmPlotter(Plotter):
                             mmtLegendBlock.change.emit();
                             //update mmtplot
                             var legendY = model['y'];
-                            var mmtModel = mmtModelArr[activeBox.active-1].data;
-                            var yArr = mmtModel['y'];
+                            var mmtModel = mmtModelArr[activeBox.active-1];
+                            var mmtPlot = mmtPlotArr[activeBox.active-1];
+                            var yArr = (mmtModel.data)['y'];
                             for (var i=0; i<yArr.length; i++){
-                                yArr[i] = (yArr[i]*(curLegendNum.active-1)+legendY[i]*curLegendNum.active)/curLegendNum.active;
+                                yArr[i] = (yArr[i]*(curLegendNum.active-1)+legendY[i])/curLegendNum.active;
                             }
                             mmtModel.change.emit();
+                            mmtPlot.visible = true;
+                            mmtPlot.change.emit();
                             cb_obj.visible = false;
                         }
                     """)
@@ -227,35 +240,16 @@ class ZmPlotter(Plotter):
         p.toolbar.autohide = True
         legend = self.setup_legends(p, items)
 
-        # ROW_test ################################################
-        x = [x*0.005 for x in range(0, 200)]
-        y = x
-        source2 = ColumnDataSource(data=dict(x=x, y=y))
-        plot2 = figure(plot_width=400, plot_height=400)
-        plot2.line('x', 'y', source=source2, line_width=3, line_alpha=0.6)
-        callback2 = CustomJS(args=dict(source=source2), code="""
-            var data = source.data;
-            var f = cb_obj.value
-            var x = data['x']
-            var y = data['y']
-            for (var i = 0; i < x.length; i++) {
-                y[i] = Math.pow(x[i], f)
-            }
-            source.change.emit();
-        """)
-        slider2 = Slider(start=0.1, end=4, value=1, step=.1, title="power")
-        slider2.js_on_change('value', callback2)
-        layout2 = column(slider2, plot2)
-
-        # LAYOUT :: ROW_1, ROW_2, ROW_test #########################
-        layout = column(p, mmtLegendBlock, layout2)
+        # LAYOUT :: ROW_1, ROW_2 #########################
+        layout = column(p, mmtLegendBlock)
         # tab pages
         #tab1 = Panel(child=fig1, title="sine")
         #tab2 = Panel(child=fig2, title="cos")
         #tabs = Tabs(tabs=[ tab1, tab2 ])
-        return layout
-    
 
+        # output
+        return self.do_export(layout, p)
+    
     def setup_mmt_legendboxArr(self, maxBoxNum, maxLegendNum):
         legendNum = ["number" for i in range(maxLegendNum)]
         mmtLegendBoxArr = []
@@ -281,8 +275,7 @@ class ZmPlotter(Plotter):
             yArr[:] = mmtIndex*100
             modelDict = {'x':df['x'], 'y':yArr}
             mmtModel = ColumnDataSource(data=modelDict)
-            mmtDF = pd.DataFrame(data=modelDict)
-            mmtPlot = plot.line(mmtDF['x'], mmtDF['y'], line_dash="4 0", line_width=1, line_color=mmtPalette[mmtIndex], line_alpha=0.5, visible=True)
+            mmtPlot = plot.line('x', 'y', source=mmtModel, line_dash="4 0", line_width=2, line_color=mmtPalette[mmtIndex], line_alpha=0.6, visible=False)
             modelArr.append(mmtModel)
             plotArr.append(mmtPlot)
         return {'mmtModelArr':modelArr, 'mmtPlotArr':plotArr}
@@ -315,8 +308,7 @@ class ZmPlotter(Plotter):
         # orientation
         # legend.orientation = "horizontal"
 
-        legend.click_policy="mute"
-        # legend.click_policy="hide"
+        legend.click_policy="mute"  # or "hide"
         # legend.location = "top_right"
         plot.add_layout(legend, 'right')
         return legend
@@ -360,13 +352,10 @@ class ZmPlotter(Plotter):
 
 
 class Tco3ZmPlotter(ZmPlotter):
-    def __init__(self, plotdata):
-        self.init_plotter(plotdata)
+    pass
 
 class Vmro3ZmPlotter(ZmPlotter):
-    def __init__(self, plotdata):
-        self.init_plotter(plotdata)
+    pass
 
 class Tco3ReturnPlotter(Plotter):
-    def __init__(self, plotdata):
-        self.init_plotter(plotdata)
+    pass

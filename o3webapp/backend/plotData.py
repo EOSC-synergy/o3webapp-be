@@ -16,6 +16,7 @@ class OutputFormat(enum.Enum):
    pdf = 2
    csv = 3
    png = 4
+   svg = 5
 
 ####################################################
 # PlotData :
