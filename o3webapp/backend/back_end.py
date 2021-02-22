@@ -48,6 +48,7 @@ def handle_request_for_plot(pType):
 #/download/<format> -> download the plot in the given format (CSV, PNG, PDF...)
 @app.route('/download/<format>', methods=['GET', 'POST'])
 def handle_request_for_download(format):
+    print(format)
     userManager = UserManager(request)
     return userManager.handle_process_on_plotpage("plot", format) ## TODO
 

@@ -71,7 +71,7 @@ class PlotController(RemoteController):
 
     def handle_process(self):
         self.plotData = self.plotParser.parse_request_2_plotdata(self.jsonRequest)
-        # TODO check printing plotdata
+        # TODO check plotdata
         #self.plotData.print()
         modelDataJsonFile = self.plotRequestor.request_model_data(self.plotData)
         #print(modelDataJsonFile)

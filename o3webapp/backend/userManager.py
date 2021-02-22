@@ -15,6 +15,8 @@ class UserManager:
               'models_info': (lambda jsonRequest: ModelsInfoController(jsonRequest)),
               't_M_V': (lambda jsonRequest:TypeModelsVarsController(jsonRequest)),
               'plot': (lambda jsonRequest:PlotController.plotControllerDict[jsonRequest['pType']](jsonRequest))}
+
+              
     #TODO add opID for download and mean_median_trend etc.
 
     def __init__(self, userRequest):

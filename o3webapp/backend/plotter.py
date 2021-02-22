@@ -18,6 +18,7 @@ from bokeh.layouts import column, row, WidgetBox, widgetbox
 from bokeh.plotting import figure, output_file, show, curdoc
 from bokeh.events import ButtonClick, Tap
 from bokeh.palettes import Spectral11
+from bokeh.models.tickers import AdaptiveTicker, CompositeTicker, YearsTicker, MonthsTicker, DaysTicker
 # bokeh io
 from bokeh.io import show, output, export_png, export_svgs
 from bokeh.embed import json_item,file_html
@@ -25,7 +26,9 @@ from bokeh.resources import CDN
 from io import StringIO
 
 from abc import ABC, abstractmethod
+###
 
+###
 # Plotter, 
 # plotting the data stored within the plotData
 # considering the parameter for variables and legends.
@@ -67,6 +70,7 @@ class Plotter(ABC):
             data = export_svgs(plot, filename="plot.svg")
             return Response(data, mimetype="image/svg+xml",
                 headers={"Content-Disposition": "attachment;filename={}".format("plot.svg")})
+#TODO test on front-end
 #        elif self.output == OutputFormat["pdf"]:
 #            output_file("static/o3as_plot.html")
 #            show(plot)
@@ -98,16 +102,6 @@ class Plotter(ABC):
 # whose x axis represents the time.
 class ZmPlotter(Plotter):
     mmtLabels = ["mean", "median", "trend"]
-
-    def build_models_dict(self):
-        modelsDict = {}
-        firstModelData = self.modelList[0].get_val_cds()
-        modelsDict['Time'] = firstModelData['x']
-        for model in self.modelList:
-            modelName = model.get_name()
-            modelData = model.get_val_cds()
-            modelsDict[modelName] = modelData['y']
-        return modelsDict
 
     def plot_data(self, plotdata):
         self.init_plotter(plotdata)
@@ -265,7 +259,19 @@ class ZmPlotter(Plotter):
         #tabs = Tabs(tabs=[ tab1, tab2 ])
 
         # output
+
+
         return self.do_export(layout, p)
+    
+    def build_models_dict(self):
+        modelsDict = {}
+        firstModelData = self.modelList[0].get_val_cds()
+        modelsDict['Time'] = firstModelData['x']
+        for model in self.modelList:
+            modelName = model.get_name()
+            modelData = model.get_val_cds()
+            modelsDict[modelName] = modelData['y']
+        return modelsDict
     
     def setup_mmt_legendboxArr(self, maxBoxNum, maxLegendNum):
         legendNum = ["number" for i in range(maxLegendNum)]
@@ -289,6 +295,7 @@ class ZmPlotter(Plotter):
         plotArr = []
         for mmtIndex in range(maxBoxNum):
             yArr = np.zeros(len(df['x']))
+            yArr[:] = df['y'][0]
             modelDict = {'x':df['x'], 'y':yArr}
             mmtModel = ColumnDataSource(data=modelDict)
             mmtPlot = plot.line('x', 'y', source=mmtModel, line_dash="4 0", line_width=2, line_color=mmtPalette[mmtIndex], line_alpha=0.6, visible=False)
@@ -332,8 +339,10 @@ class ZmPlotter(Plotter):
         
     def setup_axis(self, plot):
         # axis
-        plot.xaxis.axis_line_width = 3
-        plot.xaxis.axis_line_color = "red"
+        
+
+        plot.xaxis.axis_line_width = 2
+        plot.xaxis.axis_line_color = "black"
         # axis label
         # plot.xaxis.axis_label = "Time"
         # plot.xaxis.axis_label_text_color = "#aa6666"
@@ -343,11 +352,78 @@ class ZmPlotter(Plotter):
         # tick line
         plot.xaxis.major_tick_line_color = "orange"
         plot.xaxis.major_tick_line_width = 3
-        plot.xaxis.minor_tick_line_color = None
+        plot.xaxis.minor_tick_line_color = "black"
+        plot.yaxis.minor_tick_line_width = 2
         plot.yaxis.minor_tick_line_color = "firebrick"
         plot.axis.major_tick_out = 10
         plot.axis.minor_tick_in = -3
         plot.axis.minor_tick_out = 8
+
+        ONE_MILLI = 1.0
+        ONE_SECOND = 1000.0
+        ONE_MINUTE = 60.0 * ONE_SECOND
+        ONE_HOUR = 60 * ONE_MINUTE
+        ONE_DAY = 24 * ONE_HOUR
+        ONE_MONTH = 30 * ONE_DAY # An approximation, obviously.
+        ONE_YEAR = 365 * ONE_DAY
+        ymdTicker = CompositeTicker()
+        ymdTicker.tickers = [
+            AdaptiveTicker(
+                mantissas=[1, 2, 5],
+                base=10,
+                min_interval=0,
+                max_interval=500*ONE_MILLI,
+                num_minor_ticks=0
+            ),
+            AdaptiveTicker(
+                mantissas=[1, 2, 5, 10, 15, 20, 30],
+                base=60,
+                min_interval=ONE_SECOND,
+                max_interval=30*ONE_MINUTE,
+                num_minor_ticks=0
+            ),
+            AdaptiveTicker(
+                mantissas=[1, 2, 4, 6, 8, 12],
+                base=24,
+                min_interval=ONE_HOUR,
+                max_interval=12*ONE_HOUR,
+                num_minor_ticks=0
+            ),
+            AdaptiveTicker(
+                mantissas=[1, 2, 5, 10, 15],
+                base=30,
+                min_interval=ONE_DAY,
+                max_interval=15*ONE_DAY,
+                num_minor_ticks=0
+            ),
+            AdaptiveTicker(
+                mantissas=[1, 2, 4, 6],
+                base=12,
+                min_interval=ONE_MONTH,
+                max_interval=6*ONE_MONTH,
+                num_minor_ticks=0
+            ),
+            AdaptiveTicker(
+                mantissas=[1, 2, 3, 4, 5],
+                base=10,
+                min_interval=ONE_YEAR,
+                max_interval=5*ONE_YEAR,
+                num_minor_ticks=0
+            ),
+            DaysTicker(days=list(range(1, 32))),
+            DaysTicker(days=list(range(1, 31, 3))),
+            DaysTicker(days=[1, 8, 15, 22]),
+            DaysTicker(days=[1, 15]),
+
+            MonthsTicker(months=list(range(0, 12, 1))),
+            MonthsTicker(months=list(range(0, 12, 2))),
+            MonthsTicker(months=list(range(0, 12, 4))),
+            MonthsTicker(months=list(range(0, 12, 6))),
+
+            YearsTicker(),
+        ]
+        plot.xaxis.ticker = ymdTicker
+        
         # format
         # plot.xaxis[0].formatter = NumeralTickFormatter(format="0.0%")
         # plot.yaxis[0].formatter = NumeralTickFormatter(format="$0.00")
@@ -357,15 +433,22 @@ class ZmPlotter(Plotter):
         #    return Math.floor(tick) + " + " + (tick % 1).toFixed(2)
         #    """)
         plot.xaxis.formatter=DatetimeTickFormatter(
-                hours = ['%Hh', '%H:%M'],
-                days = ['%m/%d/%Y', '%a%d'],
-                months = ['%m/%Y', '%b %Y'],
-                years = ['%Y']
+                hours = ['%m/%d/%Y%Hh', '%m/%d/%Y%Hh'],
+                days = ['%m/%d/%Y', '%m/%d/%Y'],
+                months = ['%m. %Y', '%b %Y'],
+                years = ['%m. %Y']
             )
         plot.yaxis.major_label_text_color = "orange"
         # orientation
         plot.xaxis.major_label_orientation = pi/4
         plot.yaxis.major_label_orientation = "vertical"
+
+        
+
+
+    
+
+
 
 
 class Tco3ZmPlotter(ZmPlotter):
@@ -376,3 +459,5 @@ class Vmro3ZmPlotter(ZmPlotter):
 
 class Tco3ReturnPlotter(Plotter):
     pass
+
+
