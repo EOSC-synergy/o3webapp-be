@@ -70,13 +70,13 @@ class Plotter(ABC):
             data = export_svgs(plot, filename="plot.svg")
             return Response(data, mimetype="image/svg+xml",
                 headers={"Content-Disposition": "attachment;filename={}".format("plot.svg")})
-#TODO test on front-end
-#        elif self.output == OutputFormat["pdf"]:
-#            output_file("static/o3as_plot.html")
-#            show(plot)
-#            data = pdfkit.from_file('static/o3as_plot.html', 'plot.pdf')
-#            return Response(data, mimetype="application/pdf",
-#                headers={"Content-Disposition": "attachment;filename={}".format("plot.pdf")})
+        #TODO test on front-end
+        elif self.output == OutputFormat["pdf"]:
+            output_file("static/o3as_plot.html")
+            show(plot)
+            data = pdfkit.from_file('static/o3as_plot.html', 'plot.pdf')
+            return Response(data, mimetype="application/pdf",
+                headers={"Content-Disposition": "attachment;filename={}".format("plot.pdf")})
         else:
             data = json.dumps(json_item(layout))
             return Response(data, mimetype='application/json')
@@ -106,7 +106,7 @@ class ZmPlotter(Plotter):
     def plot_data(self, plotdata):
         self.init_plotter(plotdata)
 
-        p = figure(plot_width=1500, plot_height=500, title=self.plotType.name, x_axis_type="datetime")
+        p = figure(width_policy = "fit", plot_height=500, title=self.plotType.name, x_axis_type="datetime")
 
         ###################  mmt block #####################
         #+----------------+--------------+----------------+#
