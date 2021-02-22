@@ -28,6 +28,7 @@ class OutputFormat(enum.Enum):
 class PlotData:
     def __init__(self, ptype, varData, output):
         self.ptype = PlotType[ptype]
+        print(output)
         self.output = OutputFormat[output]
         self.init_var_model_data(varData)
 

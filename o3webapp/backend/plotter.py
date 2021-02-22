@@ -106,8 +106,9 @@ class ZmPlotter(Plotter):
     def plot_data(self, plotdata):
         self.init_plotter(plotdata)
 
-        p = figure(width_policy = "fit", plot_height=500, title=self.plotType.name, x_axis_type="datetime")
+        p = figure(plot_width = 1500 , plot_height=500, title=self.plotType.name, x_axis_type="datetime")
 
+        #TODO add color , hide and delete button
         ###################  mmt block #####################
         #+----------------+--------------+----------------+#
         #| mmtButtonGroup |  mmtBoxNum   | mmtBoxActivity |#
