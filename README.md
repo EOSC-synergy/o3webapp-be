@@ -27,7 +27,7 @@ Win10:
 ..\backend> pip install requests
 ..\backend> pip install --user numpy scipy pandas
 ..\backend> pip install pdfkit
-..\backend> pip install flask-cors
+..\backend> pip install -U flask-cors
 
 start-up backend service:
 Win10:
