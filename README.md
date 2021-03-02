@@ -25,13 +25,19 @@ Win10:
 ..\backend> pip install Flask
 ..\backend> pip install bokeh
 ..\backend> pip install requests
-..\backend> pip install --user numpy scipy pandas
+..\backend> pip install scipy pandas
 ..\backend> pip install pdfkit
 ..\backend> pip install -U flask-cors
+..\backend> pip install selenium
 
 start-up backend service:
 Win10:
 ..\backend> $env:FLASK_APP="back_end.py"
 ..\backend> flask run
 
+Additionally for frontend:
+node.js and npm installed
+Win10:
+..\react-frontend> npm install react-scripts --save
+..\react-frontend> npm run start
 
