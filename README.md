@@ -7,7 +7,6 @@ This code is distributed under the GNU LGPLv3 License. Please, see the LICENSE f
 O3as WebApp is a part of the service for Ozone (O3) Assessment, http://o3as.data.kit.edu/
 
 Pre-Requisites:
-Node.js and npm installed
 Python installed, together with pip (the following instructions will be given based on pip)
 Python virtualenv installed, and added to PATH
 
@@ -28,7 +27,7 @@ Win10:
 ..\backend> pip install requests
 ..\backend> pip install --user numpy scipy pandas
 ..\backend> pip install pdfkit
-..\backend> npm install cors
+..\backend> pip install flask-cors
 
 start-up backend service:
 Win10:
