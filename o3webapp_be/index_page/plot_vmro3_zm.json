@@ -1,0 +1,29 @@
+{
+    "operationID": "plot_vmro3_zm",
+    "parameters":[
+                    {
+                        "default":["CCMI-1_ACCESS-refC2","CCMI-1_CCCma-CMAM-refC2","CCMI-1_CHASER-MIROC-ESM-refC2"],
+                        "description":"Name(s) of model(s) (dataset-model)",
+                        "in":"query",
+                        "items":{"type":"string"},
+                        "name":"model",
+                        "required":true,
+                        "type":"array"
+                    },
+                    {
+                        "default":1959,"description":"Year to start data scanning from",
+                        "in":"query",
+                        "name":"begin",
+                        "required":false,
+                        "type":"integer"
+                    },
+                    {
+                        "default":2100,
+                        "description":"Year to finish data scanning",
+                        "in":"query",
+                        "name":"end",
+                        "required":false,
+                        "type":"integer"
+                    }
+                ]
+}
