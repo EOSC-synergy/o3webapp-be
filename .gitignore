@@ -9,6 +9,7 @@ data/*
 !data/.gitignore
 output/*
 !output/.gitignore
+o3webapp/backend/venv/*
 
 
 # Branch

@@ -17,7 +17,7 @@ ARG tag=20.04
 FROM ${base}:${tag}
 
 LABEL maintainer='XXX'
-# o3webapp as a component of the Ozone assessment service
+# o3webapp-be (backend) as a component of the Ozone assessment service
 
 # What user branch to clone (!)
 ARG branch=master
@@ -41,20 +41,22 @@ ENV DEBIAN_FRONTEND=dialog
 WORKDIR /srv
 
 # Install user app:
-RUN git clone --depth 1 -b $branch https://git.scc.kit.edu/synergy.o3as/o3webapp.git && \
-# Install o3webapp
-    cd o3webapp && \
+RUN git clone --depth 1 -b $branch https://git.scc.kit.edu/synergy.o3as/o3webapp-be.git && \
+# Install o3webapp-be
+    cd o3webapp-be && \
     pip3 install --no-cache-dir -e . && \
 # Clean up
     rm -rf /root/.cache/pip/* && \
     rm -rf /tmp/*
-WORKDIR /srv/o3webapp
+
+WORKDIR /srv/o3webapp-be
 
 # Set environments
+ENV FLASK_APP o3webapp_be.back_end.py
 ENV LANG C.UTF-8
 
-# Expose a port, if needed
-# EXPOSE 8080
+# Expose the port
+EXPOSE 5000
 
 # Start default script
-# CMD ["/bin/bash", "/srv/o3webapp/start.sh"]
+CMD ["flask", "run", "--host", "0.0.0.0"]
