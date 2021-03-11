@@ -5,7 +5,7 @@ config:
       branch: test
 environment:
   #JPL_DOCKERPUSH: "o3webapp-be"
-  O3AS_WEBAPP_BE_DOCKER_TAG: "${GIT_BRANCH}"
+  O3AS_WEBAPP_BE_DOCKER_TAG: ${GIT_BRANCH}
 
 sqa_criteria:
   qc_style:
