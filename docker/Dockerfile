@@ -48,13 +48,15 @@ RUN git clone --depth 1 -b $branch https://git.scc.kit.edu/synergy.o3as/o3webapp
 # Clean up
     rm -rf /root/.cache/pip/* && \
     rm -rf /tmp/*
-WORKDIR /srv/o3webapp-be
 
 # Set environments
+ENV FLASK_APP o3webapp_be.back_end.py
 ENV LANG C.UTF-8
 
-# Expose a port, if needed
-# EXPOSE 8080
+WORKDIR /srv/o3webapp-be
+
+# Expose the port
+EXPOSE 5000
 
 # Start default script
-# CMD ["/bin/bash", "/srv/o3webapp-be/start.sh"]
+# CMD ["flask", "run", "--host", "0.0.0.0"]
