@@ -2,9 +2,10 @@ Copyright (c) 2020 Karlsruhe Institute of Technology - Steinbuch Centre for Comp
 
 This code is distributed under the GNU LGPLv3 License. Please, see the LICENSE file
 
-# O3as WebApp
+# O3as WebApp (Backend)
+[![Build Status](https://jenkins.eosc-synergy.eu/buildStatus/icon?job=eosc-synergy-org%2Fo3webapp-be%2Ftest)](https://jenkins.eosc-synergy.eu/job/eosc-synergy-org/job/o3webapp-be/job/test/)
 
-O3as WebApp is a part of the service for Ozone (O3) Assessment, http://o3as.data.kit.edu/
+O3as WebApp (Backend) is a part of the service for Ozone (O3) Assessment, http://o3as.data.kit.edu/
 
 Pre-Requisites:
 Python installed, together with pip (the following instructions will be given based on pip)
