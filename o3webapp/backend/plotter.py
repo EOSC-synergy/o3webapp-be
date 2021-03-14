@@ -49,6 +49,9 @@ class Plotter(ABC):
         pass
 
     def do_export(self, layout, plot):
+        data = json.dumps(json_item(layout))
+        return Response(data, mimetype='application/json')
+
         if self.output == OutputFormat["csv"]:
             df = pd.DataFrame(self.build_models_dict())
             dfbuffer = StringIO()
@@ -451,7 +454,6 @@ class ZmPlotter(Plotter):
 
 
 
-
 class Tco3ZmPlotter(ZmPlotter):
     pass
 
@@ -459,6 +461,11 @@ class Vmro3ZmPlotter(ZmPlotter):
     pass
 
 class Tco3ReturnPlotter(Plotter):
-    pass
+    def plot_data(self, plotdata):
+        pass
+
+    def build_models_dict(self):
+        pass
+    
 
 

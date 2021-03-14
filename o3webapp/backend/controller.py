@@ -1,7 +1,7 @@
 from flask import request,jsonify
 from plotData import PlotData
-from requestor import APIInfoRequestor,PlotypesRequestor,ModelsInfoRequestor,TypeModelsVarsRequestor,Tco3ZmRequestor,Tco3ReturnRequestor,Vmro3ZmRequestor
-from requestParser import TypeModelsVarsParser,Tco3ZmParser,Tco3ReturnParser,Vmro3ZmParser
+from requestor import APIInfoRequestor,PlotypesRequestor,ModelsInfoRequestor,TypeModelsVarsRequestor,Tco3ZmRequestor,Tco3ReturnRequestor,Vmro3ZmRequestor,InfoUpdateRequestor,PlotDataRequestor
+from requestParser import TypeModelsVarsParser,Tco3ZmParser,Tco3ReturnParser,Vmro3ZmParser, PlotParser
 from plotter import Tco3ZmPlotter, Vmro3ZmPlotter, Tco3ReturnPlotter
 
 from abc import ABC, abstractmethod
@@ -29,6 +29,10 @@ class RemoteController(Controller):
     pass
 
 class InfoUpateController(RemoteController):
+    def __init__(self, jsonRequest):
+        super().__init__(jsonRequest)
+        self.infoRequestor = InfoUpdateRequestor()
+    
     def handle_process(self):
         return jsonify(self.infoRequestor.request_info())
 
@@ -68,6 +72,12 @@ class PlotController(RemoteController):
     plotControllerDict = {'tco3_zm': (lambda jsonRequest: Tco3ZmController(jsonRequest)),
                           'vmro3_zm': (lambda jsonRequest: Vmro3ZmController(jsonRequest)),
                           'tco3_return': (lambda jsonRequest: Tco3ReturnController(jsonRequest))}
+
+    def __init__(self, jsonRequest):
+        super().__init__(jsonRequest)
+        self.plotParser = PlotParser()
+        self.plotRequestor = PlotDataRequestor()
+        self.plotter = Tco3ZmPlotter()
 
     def handle_process(self):
         self.plotData = self.plotParser.parse_request_2_plotdata(self.jsonRequest)

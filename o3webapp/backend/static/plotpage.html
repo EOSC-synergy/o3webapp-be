@@ -40,6 +40,21 @@
     
     var url = "/plot/" + opID
     var jsonData = JSON.stringify($("#plot").serializeArray()); 
+    %2F = /
+    %3A = :
+    https://aai-dev.egi.eu/proxy/module.php/discopower/disco.php?
+    entityID=https://aai-dev.egi.eu/proxy/module.php/saml/sp/metadata.php/sso &
+    return=https://aai-dev.egi.eu/proxy/module.php/saml/sp/discoresp.php%3F
+        AuthID%3D_0659f37b742bc995790b52759a5d2a5f40acc08bc2%253A
+        https%253A%252F%252Faai-dev.egi.eu%252Fproxy%252Fsaml2%252Fidp%252FSSOService.php%253F
+        spentityid%253Dhttps%25253A%25252F%25252Faai-dev.egi.eu%25252Foidc%2526cookieTime%253D1615243062%2526RelayState%253Do3webapp &
+    returnIDParam=idpentityid
+
+    
+//    xhr.open("POST", url, true); 
+//    xhr.setRequestHeader("Content-Type", "application/json"); 
+
+//xhr.send(jsonData); 
 </p>
 
 <script>
@@ -60,9 +75,9 @@ function sendJSON(){
     } else {
         url += "plot";
     }
+    url = 'https://aai-dev.egi.eu/proxy/module.php/discopower/disco.php?entityID=https%3A%2F%2Faai-dev.egi.eu%2Fproxy%2Fmodule.php%2Fsaml%2Fsp%2Fmetadata.php%2Fsso&return=https%3A%2F%2Faai-dev.egi.eu%2Fproxy%2Fmodule.php%2Fsaml%2Fsp%2Fdiscoresp.php%3FAuthID%3D_0659f37b742bc995790b52759a5d2a5f40acc08bc2%253Ahttps%253A%252F%252Faai-dev.egi.eu%252Fproxy%252Fsaml2%252Fidp%252FSSOService.php%253Fspentityid%253Dhttps%25253A%25252F%25252Faai-dev.egi.eu%25252Foidc%2526cookieTime%253D1615243062%2526RelayState%253Do3webapp&returnIDParam=idpentityid'
 
-
-    var xhr = new XMLHttpRequest(); 
+    var xhr = new XMLHttpRequest();
     xhr.open("POST", url, true); 
     xhr.setRequestHeader("Content-Type", "application/json"); 
     xhr.onreadystatechange = function () { 
