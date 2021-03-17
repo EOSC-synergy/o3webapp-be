@@ -1,7 +1,8 @@
-from flask import Flask,request,url_for,redirect
+from flask import Flask,request,url_for,redirect, jsonify
 from userManager import UserManager
 from flask_cors import CORS
 import requests
+
 
 # Backend interface, which is responsible for :
 # 1. listening to the user request from frontend,
@@ -77,24 +78,25 @@ def handle_request_for_typemv(pType):
 #/model_info/<model> returns the info for the specified model
 
 # TODO get token by code from EGI
-@app.route('/login', methods=['GET','POST'])
-def login():
+@app.route('/login/<auth_code>', methods=['GET','POST'])
+def login(auth_code):
     egi_token_url = 'https://aai-dev.egi.eu/oidc/token'
     headers = {'Content-Type': 'application/x-www-form-urlencoded'}
-    data = {'grant_type':'authorization_code', 'code':'6HK2j7'}
-    #    'redirect_uri': 'http://localhost:3000/redirect_url'
+    data = {'grant_type':'authorization_code', 'code': auth_code,
+            'redirect_uri': 'http://localhost:3000/redirect_url'}
     auth = ('o3webapp', 'LTiU7yqg_GBCZlRjEVpctPOANIGjtzLGPFprIohg7pkOQ-Bl_iDEwjHdz9tBpL6qIiyN37SiJ83oLRrsv-qkpA')
     egi_auth = requests.post(egi_token_url, headers=headers, data=data, auth=auth).json()
     print(egi_auth)
     access_token = egi_auth['access_token']
     
     userinfo_url='https://aai-dev.egi.eu/oidc/userinfo'
-    headers = {"Authorization": "Bearer " + accessToken}
+    headers = {"Authorization": "Bearer " + access_token}
     egi_userinfo = requests.get(userinfo_url, headers=headers).json()
     print(egi_userinfo)
     username = egi_userinfo['name']
+    sub = egi_userinfo['sub']
 
-    return jsonify({'sub': access_token, 'name': username})
+    return jsonify({'sub': sub, 'name': username})
 
 #with app.test_request_context():
     #print(url_for('/plot/', opID ='api_info'))
