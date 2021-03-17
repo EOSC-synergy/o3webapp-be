@@ -79,21 +79,22 @@ def handle_request_for_typemv(pType):
 # TODO get token by code from EGI
 @app.route('/login', methods=['GET','POST'])
 def login():
-    #POST /token HTTP/1.1
-    #Host: openid.c2id.com
-    #Content-Type: application/x-www-form-urlencoded
-    #Authorization: Basic czZCaGRSa3F0MzpnWDFmQmF0M2JW
+    egi_token_url = 'https://aai-dev.egi.eu/oidc/token'
+    headers = {'Content-Type': 'application/x-www-form-urlencoded'}
+    data = {'grant_type':'authorization_code', 'code':'6HK2j7'}
+    #    'redirect_uri': 'http://localhost:3000/redirect_url'
+    auth = ('o3webapp', 'LTiU7yqg_GBCZlRjEVpctPOANIGjtzLGPFprIohg7pkOQ-Bl_iDEwjHdz9tBpL6qIiyN37SiJ83oLRrsv-qkpA')
+    egi_auth = requests.post(egi_token_url, headers=headers, data=data, auth=auth).json()
+    print(egi_auth)
+    access_token = egi_auth['access_token']
+    
+    userinfo_url='https://aai-dev.egi.eu/oidc/userinfo'
+    headers = {"Authorization": "Bearer " + accessToken}
+    egi_userinfo = requests.get(userinfo_url, headers=headers).json()
+    print(egi_userinfo)
+    username = egi_userinfo['name']
 
-    #grant_type=authorization_code
-    #&code=SplxlOBeZQQYbYS6WxSbIA
-    #&redirect_uri=https%3A%2F%2Fclient.example.org%2Fcb
-
-    url = 'https://aai-dev.egi.eu/oidc/token'
-    headers = {'Content-Type': 'application/x-www-form-urlencoded', 'client_id':'o3webapp', 'client_secret':'LTiU7yqg_GBCZlRjEVpctPOANIGjtzLGPFprIohg7pkOQ-Bl_iDEwjHdz9tBpL6qIiyN37SiJ83oLRrsv-qkpA'}
-    data = {'grant_type':'authorization_code', 'code':'zHcaGu'}
-    r = requests.post(url, headers=headers, data=data)
-    print(r.json())
-    return redirect(url_for('static', filename='plotpage.html'))
+    return jsonify({'sub': access_token, 'name': username})
 
 #with app.test_request_context():
     #print(url_for('/plot/', opID ='api_info'))
