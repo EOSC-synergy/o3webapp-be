@@ -4,7 +4,6 @@ import json
 from math import pi
 import numpy as np
 from scipy import signal
-import pdfkit
 
 # bokeh plot
 from bokeh.core.properties import String, Instance
@@ -21,6 +20,7 @@ from bokeh.palettes import Spectral11
 from bokeh.models.tickers import AdaptiveTicker, CompositeTicker, YearsTicker, MonthsTicker, DaysTicker
 # bokeh io
 from bokeh.io import show, output, export_png, export_svgs
+from PIL import Image
 from bokeh.embed import json_item,file_html
 from bokeh.resources import CDN
 from io import StringIO
@@ -48,10 +48,8 @@ class Plotter(ABC):
     def build_models_dict(self):
         pass
 
+    # TODO implemented in Responder, who takes care of the format of the output.
     def do_export(self, layout, plot):
-        data = json.dumps(json_item(layout))
-        return Response(data, mimetype='application/json')
-
         if self.output == OutputFormat["csv"]:
             df = pd.DataFrame(self.build_models_dict())
             dfbuffer = StringIO()
@@ -63,6 +61,7 @@ class Plotter(ABC):
         elif self.output == OutputFormat["png"]:
             plot.background_fill_color = None
             plot.border_fill_color = None
+            # TODO avoid to generate file.
             data = export_png(plot, filename="plot.png")
             return Response(data, mimetype="image/png",
                 headers={"Content-Disposition": "attachment;filename={}".format("plot.png")})
@@ -70,15 +69,19 @@ class Plotter(ABC):
             plot.background_fill_color = None
             plot.border_fill_color = None
             plot.output_backend = "svg"
+            # TODO avoid to generate file.
             data = export_svgs(plot, filename="plot.svg")
             return Response(data, mimetype="image/svg+xml",
                 headers={"Content-Disposition": "attachment;filename={}".format("plot.svg")})
-        #TODO test on front-end
         elif self.output == OutputFormat["pdf"]:
-            output_file("static/o3as_plot.html")
-            show(plot)
-            data = pdfkit.from_file('static/o3as_plot.html', 'plot.pdf')
-            return Response(data, mimetype="application/pdf",
+            plot.background_fill_color = None
+            plot.border_fill_color = None
+            # TODO avoid to generate file. open image instead of file. save obj instead of file.
+            png = export_png(plot, filename="plot.png")
+            image = Image.open(r'plot.png')
+            pdf = image.convert('RGB')
+            pdf.save(r'plot.pdf')
+            return Response('plot.pdf', mimetype="application/pdf",
                 headers={"Content-Disposition": "attachment;filename={}".format("plot.pdf")})
         else:
             data = json.dumps(json_item(layout))

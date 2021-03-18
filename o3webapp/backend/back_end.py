@@ -57,11 +57,11 @@ def handle_request_for_plot(pType):
 @app.route('/download/<format>', methods=['GET', 'POST'])
 def handle_request_for_download(format):
     # TODO debug
-    print(format)
+    #print(format)
     userManager = UserManager(request)
-    r = userManager.handle_process_on_plotpage("plot", format) ## TODO
+    r = userManager.handle_process_on_plotpage("plot", format) ## TODO "pdf"
     # TODO debug
-    print(r)
+    #print(r)
     return r
 
 #/model_list/<pType> -> returns the available models for the given plottype
@@ -80,19 +80,18 @@ def handle_request_for_typemv(pType):
 # TODO get token by code from EGI
 @app.route('/login/<auth_code>', methods=['GET','POST'])
 def login(auth_code):
+    print(auth_code)
     egi_token_url = 'https://aai-dev.egi.eu/oidc/token'
     headers = {'Content-Type': 'application/x-www-form-urlencoded'}
     data = {'grant_type':'authorization_code', 'code': auth_code,
             'redirect_uri': 'http://localhost:3000/redirect_url'}
     auth = ('o3webapp', 'LTiU7yqg_GBCZlRjEVpctPOANIGjtzLGPFprIohg7pkOQ-Bl_iDEwjHdz9tBpL6qIiyN37SiJ83oLRrsv-qkpA')
     egi_auth = requests.post(egi_token_url, headers=headers, data=data, auth=auth).json()
-    print(egi_auth)
     access_token = egi_auth['access_token']
-    
+
     userinfo_url='https://aai-dev.egi.eu/oidc/userinfo'
     headers = {"Authorization": "Bearer " + access_token}
     egi_userinfo = requests.get(userinfo_url, headers=headers).json()
-    print(egi_userinfo)
     username = egi_userinfo['name']
     sub = egi_userinfo['sub']
 
