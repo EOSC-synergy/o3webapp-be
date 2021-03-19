@@ -1,10 +1,9 @@
-from o3webapp_be.plotData import PlotData, PlotType, OutputFormat
+from .plotData import PlotData, PlotType, OutputFormat
 from flask import url_for,redirect, Response
 import json
 from math import pi
 import numpy as np
 from scipy import signal
-import pdfkit
 
 # bokeh plot
 from bokeh.core.properties import String, Instance
@@ -21,6 +20,7 @@ from bokeh.palettes import Spectral11
 from bokeh.models.tickers import AdaptiveTicker, CompositeTicker, YearsTicker, MonthsTicker, DaysTicker
 # bokeh io
 from bokeh.io import show, output, export_png, export_svgs
+from PIL import Image
 from bokeh.embed import json_item,file_html
 from bokeh.resources import CDN
 from io import StringIO
@@ -39,6 +39,7 @@ class Plotter(ABC):
         pass
 
     def init_plotter(self, plotdata):
+        self.nameModelDict = plotdata.get_name_model_dict()
         self.modelDict = plotdata.get_modeldata_dict()
         self.modelList = plotdata.get_modeldata_list()
         self.plotType = plotdata.get_ptype()
@@ -48,7 +49,9 @@ class Plotter(ABC):
     def build_models_dict(self):
         pass
 
+    # TODO implemented in Responder, who takes care of the format of the output.
     def do_export(self, layout, plot):
+        
         if self.output == OutputFormat["csv"]:
             df = pd.DataFrame(self.build_models_dict())
             dfbuffer = StringIO()
@@ -60,6 +63,7 @@ class Plotter(ABC):
         elif self.output == OutputFormat["png"]:
             plot.background_fill_color = None
             plot.border_fill_color = None
+            # TODO avoid to generate file.
             data = export_png(plot, filename="plot.png")
             return Response(data, mimetype="image/png",
                 headers={"Content-Disposition": "attachment;filename={}".format("plot.png")})
@@ -67,15 +71,19 @@ class Plotter(ABC):
             plot.background_fill_color = None
             plot.border_fill_color = None
             plot.output_backend = "svg"
+            # TODO avoid to generate file.
             data = export_svgs(plot, filename="plot.svg")
             return Response(data, mimetype="image/svg+xml",
                 headers={"Content-Disposition": "attachment;filename={}".format("plot.svg")})
-        #TODO test on front-end
         elif self.output == OutputFormat["pdf"]:
-            output_file("static/o3as_plot.html")
-            show(plot)
-            data = pdfkit.from_file('static/o3as_plot.html', 'plot.pdf')
-            return Response(data, mimetype="application/pdf",
+            plot.background_fill_color = None
+            plot.border_fill_color = None
+            # TODO avoid to generate file. open image instead of file. save obj instead of file.
+            png = export_png(plot, filename="plot.png")
+            image = Image.open(r'plot.png')
+            pdf = image.convert('RGB')
+            pdf.save(r'plot.pdf')
+            return Response('plot.pdf', mimetype="application/pdf",
                 headers={"Content-Disposition": "attachment;filename={}".format("plot.pdf")})
         else:
             data = json.dumps(json_item(layout))
@@ -118,6 +126,8 @@ class ZmPlotter(Plotter):
         #|+--boxHeader---+|+--boxHeader---+|               #
         #|| boxTitle     ||| boxTitle     ||               #
         #|| mmtLegendNum ||| mmtLegendNum ||               #
+        #|| mmtColor     ||| mmtColor     ||               #
+        #|| mmtHide      ||| mmtHide      ||               #
         #|+--------------+|+--------------+|               #
         #|  legend_1      |  legend_1      |               #
         #|  legend_2      |  legend_2      |               #
@@ -199,8 +209,47 @@ class ZmPlotter(Plotter):
             for legendIndex in range(1, maxLegendNum):
                 legend = legendArr[legendIndex]
                 # TODO legend.js_on_click to delete model #######################################
-                legend.js_on_click(CustomJS(args=dict(mmtBlockHead=mmtLegendBlockHead,
-                    mmtBoxArr=mmtLegendBoxArr, bgColor=bgColor, boxIndex=legendIndex), code="""
+                legend.js_on_click(CustomJS(args=dict(mmtLegendBlock=mmtLegendBlock, 
+                    mmtModelArr=mmtModelPlotArr['mmtModelArr'], mmtPlotArr=mmtModelPlotArr['mmtPlotArr'],
+                    mmtBoxArr=mmtLegendBoxArr, boxIndex=legendIndex, modelDict=self.nameModelDict), code="""
+                        var boxIndex = cb_obj.origin.tags[0];
+                        //search for the box
+                        var boxArr = (mmtLegendBlock.children)[1].children;
+                        var box = boxArr[boxIndex];
+                        var boxHeader = box.children[0];
+                        var boxTitle = boxHeader.children[0].label;
+                        //update mmtplot
+                        var curLegendNum = (boxHeader.children)[1].active;
+                        var model = modelDict[cb_obj.origin.label];
+                        var legendY = model['y'];
+                        var mmtModel = mmtModelArr[boxIndex];
+                        var mmtPlot = mmtPlotArr[boxIndex];
+                        var yArr = (mmtModel.data)['y'];
+                        for (var j=0; j<yArr.length; j++){
+                            if(curLegendNum == 1){
+                                yArr[j] = 0;
+                            }else{
+                                yArr[j] = (yArr[j]*(curLegendNum) - legendY[j])/(curLegendNum-1);
+                            }
+                        }
+                        mmtModel.change.emit();
+                        mmtPlot.visible = (curLegendNum != 1);
+                        mmtPlot.change.emit();
+                        (boxHeader.children)[1].active = curLegendNum - 1;
+
+
+                        //TODO switch the legends following the deleted legends upwards
+                        var legendIndex = cb_obj.origin.tags[1];
+                        var j=legendIndex;
+                        for (; j<box.length-1; j++){
+                            var legend = box.children[j];
+                            var nextLegend = box.children[j+1];
+                            legend.label = nextLegend.label;
+                        }
+                        box.children[j].label = "";
+                        box.children[j].visible = false;
+                        box.children[j].height = 0;
+                        mmtLegendBlock.change.emit();
                         """))
 
         # ROW_1 :: p + legends #######################################################################
@@ -215,34 +264,40 @@ class ZmPlotter(Plotter):
                 code="""
                         var blockHeader = (mmtLegendBlock.children)[0].children;
                         var activeBox = blockHeader[2];
-                        var boxArr = (mmtLegendBlock.children)[1].children;
-                        var legendArr = boxArr[activeBox.active-1].children;
-                        var curLegendNum = (legendArr[0].children)[1];
 
-                        if(activeBox.active > 0 && curLegendNum.active < maxLegendNum){
-                            for(var i=1; i<=curLegendNum.active; i++){
-                                if(legendArr[i].label == legendName) return;
+                        if(activeBox.active > 0){
+                            var boxArr = (mmtLegendBlock.children)[1].children;
+                            var legendArr = boxArr[activeBox.active-1].children;
+                            var boxTitle = (legendArr[0].children)[0].label;
+                            var curLegendNum = (legendArr[0].children)[1];
+                            if(curLegendNum.active < maxLegendNum){
+                                for(var i=1; i<=curLegendNum.active; i++){
+                                    if(legendArr[i].label == legendName) return;
+                                }
+                                curLegendNum.active++;
+                                legendArr[curLegendNum.active].tags[0] = activeBox.active -1;
+                                legendArr[curLegendNum.active].tags[1] = curLegendNum.active;
+                                legendArr[curLegendNum.active].label = legendName;
+                                legendArr[curLegendNum.active].visible = true;
+                                legendArr[curLegendNum.active].height = height;
+                                //legendArr[curLegendNum.active].width_policy = "fit";
+                                legendArr[curLegendNum.active].width = width;
+                                legendArr[curLegendNum.active].background = legendColor;
+                                mmtLegendBlock.change.emit();
+                                //update mmtplot
+                                var legendY = model['y'];
+                                var mmtModel = mmtModelArr[activeBox.active-1];
+                                var mmtPlot = mmtPlotArr[activeBox.active-1];
+                                var yArr = (mmtModel.data)['y'];
+                                for (var i=0; i<yArr.length; i++){
+                                    yArr[i] = (yArr[i]*(curLegendNum.active-1)+legendY[i])/curLegendNum.active;
+                                }
+                                mmtModel.change.emit();
+                                mmtPlot.visible = true;
+                                mmtPlot.change.emit();
+                                cb_obj.visible = true;
+                                cb_obj.muted = false;
                             }
-                            curLegendNum.active++;
-                            legendArr[curLegendNum.active].label = legendName;
-                            legendArr[curLegendNum.active].visible = true;
-                            legendArr[curLegendNum.active].height = height;
-                            //legendArr[curLegendNum.active].width_policy = "fit";
-                            legendArr[curLegendNum.active].width = width;
-                            legendArr[curLegendNum.active].background = legendColor;
-                            mmtLegendBlock.change.emit();
-                            //update mmtplot
-                            var legendY = model['y'];
-                            var mmtModel = mmtModelArr[activeBox.active-1];
-                            var mmtPlot = mmtPlotArr[activeBox.active-1];
-                            var yArr = (mmtModel.data)['y'];
-                            for (var i=0; i<yArr.length; i++){
-                                yArr[i] = (yArr[i]*(curLegendNum.active-1)+legendY[i])/curLegendNum.active;
-                            }
-                            mmtModel.change.emit();
-                            mmtPlot.visible = true;
-                            mmtPlot.change.emit();
-                            cb_obj.visible = false;
                         }
                     """)
             renderer.js_on_change('muted', renderer_cb)
@@ -333,7 +388,7 @@ class ZmPlotter(Plotter):
         # orientation
         # legend.orientation = "horizontal"
 
-        legend.click_policy="mute"  # or "hide"
+        legend.click_policy="hide"#"mute"  # or "hide"
         # legend.location = "top_right"
         plot.add_layout(legend, 'right')
         return legend
@@ -451,7 +506,6 @@ class ZmPlotter(Plotter):
 
 
 
-
 class Tco3ZmPlotter(ZmPlotter):
     pass
 
@@ -459,6 +513,11 @@ class Vmro3ZmPlotter(ZmPlotter):
     pass
 
 class Tco3ReturnPlotter(Plotter):
-    pass
+    def plot_data(self, plotdata):
+        pass
+
+    def build_models_dict(self):
+        pass
+    
 
 

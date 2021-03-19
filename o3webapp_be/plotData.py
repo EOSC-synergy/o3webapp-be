@@ -61,8 +61,11 @@ class PlotData:
     def get_modeldata(self):
         return self.modelData
 
-    def get_modeldata_dict(self):
+    def get_name_model_dict(self):
         return self.modelData.get_dict()
+
+    def get_modeldata_dict(self):
+        return self.modelData.get_model_dict()
 
     def get_modeldata_list(self):
         return self.modelData.get_model_list()
@@ -88,6 +91,12 @@ class Data:
         self.set_para_in_modelDict(modeldata)
 
     def get_dict(self):
+        nameModelDict = {}
+        for name, model in self.modelDict.items():
+            nameModelDict[name]= model.get_val_cds()
+        return nameModelDict
+
+    def get_model_dict(self):
         return self.modelDict
 
     def get_model_list(self):

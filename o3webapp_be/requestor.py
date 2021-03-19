@@ -1,6 +1,6 @@
 import requests
 import json
-from o3webapp_be.plotData import PlotData
+from .plotData import PlotData
 
 # Requestor, querying the info or data from O3as-API.
 class Requestor:

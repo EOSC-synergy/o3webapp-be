@@ -1,6 +1,6 @@
 import json
 import enum
-from o3webapp_be.plotData import PlotData
+from .plotData import PlotData
 
 # Parser, parsing the request-object into info or plotData.
 class Parser:
