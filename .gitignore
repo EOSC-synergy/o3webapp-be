@@ -9,8 +9,12 @@ data/*
 !data/.gitignore
 output/*
 !output/.gitignore
-o3webapp/backend/venv/*
 
+# Files 
+*.pdf
+*.png
+*.csv
+*.html
 
 # Branch
 .gitlab 
