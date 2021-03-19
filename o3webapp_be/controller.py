@@ -1,8 +1,8 @@
 from flask import request,jsonify
-from plotData import PlotData
-from requestor import APIInfoRequestor,PlotypesRequestor,ModelsInfoRequestor,TypeModelsVarsRequestor,Tco3ZmRequestor,Tco3ReturnRequestor,Vmro3ZmRequestor,InfoUpdateRequestor,PlotDataRequestor
-from requestParser import TypeModelsVarsParser,Tco3ZmParser,Tco3ReturnParser,Vmro3ZmParser, PlotParser
-from plotter import Tco3ZmPlotter, Vmro3ZmPlotter, Tco3ReturnPlotter
+from .plotData import PlotData
+from .requestor import APIInfoRequestor,PlotypesRequestor,ModelsInfoRequestor,TypeModelsVarsRequestor,Tco3ZmRequestor,Tco3ReturnRequestor,Vmro3ZmRequestor,InfoUpdateRequestor,PlotDataRequestor
+from .requestParser import TypeModelsVarsParser,Tco3ZmParser,Tco3ReturnParser,Vmro3ZmParser, PlotParser
+from .plotter import Tco3ZmPlotter, Vmro3ZmPlotter, Tco3ReturnPlotter
 
 from abc import ABC, abstractmethod
 

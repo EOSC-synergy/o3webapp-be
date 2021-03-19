@@ -1,4 +1,4 @@
-from plotData import PlotData, PlotType, OutputFormat
+from .plotData import PlotData, PlotType, OutputFormat
 from flask import url_for,redirect, Response
 import json
 from math import pi

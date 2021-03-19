@@ -1,5 +1,5 @@
 from flask import Flask,request,url_for,redirect, jsonify
-from userManager import UserManager
+from .userManager import UserManager
 from flask_cors import CORS
 import requests
 
