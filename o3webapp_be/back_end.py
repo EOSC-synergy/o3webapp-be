@@ -1,6 +1,15 @@
+<<<<<<< Updated upstream:o3webapp_be/back_end.py
 from flask import Flask,request
 from o3webapp_be.userManager import UserManager
 from flask_cors import CORS
+=======
+from flask import Flask,request,url_for,redirect, jsonify
+from flask_cors import CORS
+import requests
+
+from .userManager import UserManager
+
+>>>>>>> Stashed changes:o3webapp_be/backend/back_end.py
 
 # Backend interface, which is responsible for :
 # 1. listening to the user request from frontend,
