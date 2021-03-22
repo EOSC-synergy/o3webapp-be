@@ -84,7 +84,7 @@ def login(auth_code):
     egi_token_url = 'https://aai-dev.egi.eu/oidc/token'
     headers = {'Content-Type': 'application/x-www-form-urlencoded'}
     data = {'grant_type':'authorization_code', 'code': auth_code,
-            'redirect_uri': 'http://localhost:3000/redirect_url'}
+            'redirect_uri': 'o3web.test.fedcloud.eu'}
     auth = ('o3webapp', 'LTiU7yqg_GBCZlRjEVpctPOANIGjtzLGPFprIohg7pkOQ-Bl_iDEwjHdz9tBpL6qIiyN37SiJ83oLRrsv-qkpA')
     egi_auth = requests.post(egi_token_url, headers=headers, data=data, auth=auth).json()
     access_token = egi_auth['access_token']
