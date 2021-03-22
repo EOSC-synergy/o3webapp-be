@@ -1,11 +1,3 @@
-<<<<<<< Updated upstream:o3webapp_be/backend/plotter.py
-from plotData import PlotData, PlotType, OutputFormat
-=======
-<<<<<<< Updated upstream:o3webapp_be/plotter.py
-from o3webapp_be.plotData import PlotData, PlotType, OutputFormat
-=======
->>>>>>> Stashed changes:o3webapp_be/backend/plotter.py
->>>>>>> Stashed changes:o3webapp_be/plotter.py
 from flask import url_for,redirect, Response
 import json
 from math import pi
