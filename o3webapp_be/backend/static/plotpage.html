@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script src="https://cdn.bokeh.org/bokeh/release/bokeh-1.1.0.min.js"></script>
+</head>
+<body>
+
+<select name="opID" id="opID">
+  <option value="api_info">api_info</option>
+  <option value="p_type">p_type</option>
+  <option value="models_info">models_info</option>
+  <option value="t_M_V">t_M_V</option>
+  <option value="plot">plot</option>
+  <option value="download">download</option>
+</select>
+<form id="plot"target="_blank">
+  <label for="pType">Plot type:</label>
+  <input type="text" id="pType" name="pType"><br><br>
+  <label for="model">model:</label>
+  <input type="text" id="model" name="model"><br><br>
+  <label for="begin">begin:</label>
+  <input type="text" id="begin" name="begin"><br><br>
+  <label for="end">end:</label>
+  <input type="text" id="end" name="end"><br><br>
+  <label for="month">month:</label>
+  <input type="text" id="month" name="month"><br><br>
+  <label for="lat_min">lat_min:</label>
+  <input type="text" id="lat_min" name="lat_min"><br><br>
+  <label for="lat_max">lat_max:</label>
+  <input type="text" id="lat_max" name="lat_max"><br><br>
+  <label for="output">output:</label>
+  <input type="text" id="output" name="output"><br><br>
+  <input type="button" id="button" value="button" onclick="sendJSON()"><br><br>
+</form>
+
+<p id="request_url">Click on the submit button, and the plot type will be sent to the back-end "/plot".</p>
+<p id="o3as_plot">Click on the submit button, and the plot type will be sent to the back-end "/plot".
+
+    
+    var url = "/plot/" + opID
+    var jsonData = JSON.stringify($("#plot").serializeArray()); 
+    %2F = /
+    %3A = :
+    https://aai-dev.egi.eu/proxy/module.php/discopower/disco.php?
+    entityID=https://aai-dev.egi.eu/proxy/module.php/saml/sp/metadata.php/sso &
+    return=https://aai-dev.egi.eu/proxy/module.php/saml/sp/discoresp.php%3F
+        AuthID%3D_0659f37b742bc995790b52759a5d2a5f40acc08bc2%253A
+        https%253A%252F%252Faai-dev.egi.eu%252Fproxy%252Fsaml2%252Fidp%252FSSOService.php%253F
+        spentityid%253Dhttps%25253A%25252F%25252Faai-dev.egi.eu%25252Foidc%2526cookieTime%253D1615243062%2526RelayState%253Do3webapp &
+    returnIDParam=idpentityid
+
+    
+//    xhr.open("POST", url, true); 
+//    xhr.setRequestHeader("Content-Type", "application/json"); 
+
+//xhr.send(jsonData); 
+</p>
+
+<script>
+function sendJSON(){ 
+               
+    var opID_select = document.getElementById("opID");
+    var opID = opID_select.options[opID_select.selectedIndex].text;
+
+    var url = '/';
+    if (opID == "p_type") {
+        url += "plot";
+    } else if (opID == "plot") {
+        url += "plot/" + document.getElementById("pType");
+    } else if (opID == "download") {
+        url += "download/" + document.getElementById("output");
+    } else if (opID == "t_M_V") {
+        url += "model_list/" + document.getElementById("pType");
+    } else {
+        url += "plot";
+    }
+    url = 'https://aai-dev.egi.eu/proxy/module.php/discopower/disco.php?entityID=https%3A%2F%2Faai-dev.egi.eu%2Fproxy%2Fmodule.php%2Fsaml%2Fsp%2Fmetadata.php%2Fsso&return=https%3A%2F%2Faai-dev.egi.eu%2Fproxy%2Fmodule.php%2Fsaml%2Fsp%2Fdiscoresp.php%3FAuthID%3D_0659f37b742bc995790b52759a5d2a5f40acc08bc2%253Ahttps%253A%252F%252Faai-dev.egi.eu%252Fproxy%252Fsaml2%252Fidp%252FSSOService.php%253Fspentityid%253Dhttps%25253A%25252F%25252Faai-dev.egi.eu%25252Foidc%2526cookieTime%253D1615243062%2526RelayState%253Do3webapp&returnIDParam=idpentityid'
+
+    var xhr = new XMLHttpRequest();
+    xhr.open("POST", url, true); 
+    xhr.setRequestHeader("Content-Type", "application/json"); 
+    xhr.onreadystatechange = function () { 
+        if (xhr.readyState === 4 && xhr.status === 200) {
+            if(opID == "plot_test") {
+              Bokeh.embed.embed_item(this.responseText.json(), "o3as_plot");
+            } else {
+              document.getElementById("o3as_plot").innerHTML = this.responseText;
+            }
+        } 
+    }; 
+    var jsonData = JSON.stringify( 
+    {"pType":"tco3_zm",
+     "models":[{"model":"CCMI-1_ACCESS-refC2",
+                "style":{"color":"red","highlighted":"1"}},
+               {"model":"CCMI-1_CCCma-CMAM-refC2",
+                "style":{"color":"green","highlighted":"0"}},
+               {"model":"CCMI-1_CHASER-MIROC-ESM-refC2",
+                "style":{"color":"yellow","highlighted":"0"}}],
+     "begin":"1989",
+     "end":"2100",
+     "month":["7","9","11"],
+     "lat_min":"-10",
+     "lat_max":"10",
+     "output":"json"});
+
+    document.getElementById("request_url").innerHTML = jsonData;
+    document.getElementById("o3as_plot").innerHTML = "waiting for response";
+    xhr.send(jsonData); 
+} 
+</script>
+</body>
+</html>
+
+
+
+
+
+
+      

@@ -1,6 +1,14 @@
 import requests
 import json
+<<<<<<< Updated upstream:o3webapp_be/backend/requestor.py
 from plotData import PlotData
+=======
+<<<<<<< Updated upstream:o3webapp_be/requestor.py
+from o3webapp_be.plotData import PlotData
+=======
+from .plotData import PlotData
+>>>>>>> Stashed changes:o3webapp_be/backend/requestor.py
+>>>>>>> Stashed changes:o3webapp_be/requestor.py
 
 # Requestor, querying the info or data from O3as-API.
 class Requestor:

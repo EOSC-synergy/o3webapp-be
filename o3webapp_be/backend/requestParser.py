@@ -1,6 +1,14 @@
 import json
 import enum
+<<<<<<< Updated upstream:o3webapp_be/backend/requestParser.py
 from plotData import PlotData
+=======
+<<<<<<< Updated upstream:o3webapp_be/requestParser.py
+from o3webapp_be.plotData import PlotData
+=======
+from .plotData import PlotData
+>>>>>>> Stashed changes:o3webapp_be/backend/requestParser.py
+>>>>>>> Stashed changes:o3webapp_be/requestParser.py
 
 # Parser, parsing the request-object into info or plotData.
 class Parser:

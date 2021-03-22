@@ -158,6 +158,9 @@ class Model:
         arrayX = valDict[Model.defaultX]
         arrayY = valDict[Model.defaultY]
         self.val.set_cds(arrayX, arrayY)
+    
+    def reset_val_cds(self, cds):
+        self.val.reset_cds(cds)
 
     def get_para(self):
         return self.para
@@ -182,6 +185,9 @@ class ModelVal:
 
     def get_cds(self):
         return self.cds.data
+
+    def reset_cds(self, cds):
+        self.cds = cds
 
     def set_cds(self, arrayX, arrayY):
         cName = self.get_coord()
