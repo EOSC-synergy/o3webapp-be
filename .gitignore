@@ -17,6 +17,8 @@ o3webapp_be/backend/venv/*
 *.csv
 *.html
 
+egi_auth.txt
+
 # Branch
 .gitlab 
 

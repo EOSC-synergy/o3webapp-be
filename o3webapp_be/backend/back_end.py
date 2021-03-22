@@ -1,6 +1,7 @@
 from flask import Flask,request,url_for,redirect, jsonify
 from flask_cors import CORS
 import requests
+import os
 from .userManager import UserManager
 
 
@@ -83,19 +84,35 @@ def login(auth_code):
     print(auth_code)
     egi_token_url = 'https://aai-dev.egi.eu/oidc/token'
     headers = {'Content-Type': 'application/x-www-form-urlencoded'}
+    #fetch server url from environment variable
+    server_url = os.getenv('FRONTEND_SERVER_URL', 'http://localhost:3000')
+    redirect_url = server_url + '/redirect_url'
     data = {'grant_type':'authorization_code', 'code': auth_code,
-            'redirect_uri': 'o3web.test.fedcloud.eu'}
-    auth = ('o3webapp', 'LTiU7yqg_GBCZlRjEVpctPOANIGjtzLGPFprIohg7pkOQ-Bl_iDEwjHdz9tBpL6qIiyN37SiJ83oLRrsv-qkpA')
+            'redirect_uri': redirect_url}
+
+    try:
+        f = open("/run/secrets/egi_auth.txt", "r")
+    except:
+        f = open("../../egi_auth.txt", "r")
+    
+    client_secret = f.read()
+    print(client_secret)
+    auth = ('o3webapp', client_secret)
     egi_auth = requests.post(egi_token_url, headers=headers, data=data, auth=auth).json()
-    access_token = egi_auth['access_token']
 
-    userinfo_url='https://aai-dev.egi.eu/oidc/userinfo'
-    headers = {"Authorization": "Bearer " + access_token}
-    egi_userinfo = requests.get(userinfo_url, headers=headers).json()
-    username = egi_userinfo['name']
-    sub = egi_userinfo['sub']
+    try:
+        access_token = egi_auth['access_token']
 
-    return jsonify({'sub': sub, 'name': username})
+        userinfo_url='https://aai-dev.egi.eu/oidc/userinfo'
+        headers = {"Authorization": "Bearer " + access_token}
+        egi_userinfo = requests.get(userinfo_url, headers=headers).json()
+        username = egi_userinfo['name']
+        sub = egi_userinfo['sub']
+
+        return jsonify({'sub': sub, 'name': username})
+    except:
+        print("Error:")
+        print(egi_auth)
 
 #with app.test_request_context():
     #print(url_for('/plot/', opID ='api_info'))
