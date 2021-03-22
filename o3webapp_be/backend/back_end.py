@@ -1,7 +1,7 @@
 from flask import Flask,request,url_for,redirect, jsonify
-from userManager import UserManager
 from flask_cors import CORS
 import requests
+from .userManager import UserManager
 
 
 # Backend interface, which is responsible for :
