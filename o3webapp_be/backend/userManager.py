@@ -1,15 +1,5 @@
-<<<<<<< Updated upstream:o3webapp_be/backend/userManager.py
-from flask import url_for,redirect,request
-from controller import APIInfoController,PlotypesController,ModelsInfoController,TypeModelsVarsController,PlotController
-=======
-<<<<<<< Updated upstream:o3webapp_be/userManager.py
-from flask import url_for, redirect, request
-from o3webapp_be.controller import APIInfoController,PlotypesController,ModelsInfoController,TypeModelsVarsController,PlotController
-=======
 from flask import url_for,redirect,request
 from .controller import APIInfoController,PlotypesController,ModelsInfoController,TypeModelsVarsController,PlotController
->>>>>>> Stashed changes:o3webapp_be/backend/userManager.py
->>>>>>> Stashed changes:o3webapp_be/userManager.py
 
 # User Manager, which handles all kinds of user requests :
 # 1. Arranging the user info and user status, 
