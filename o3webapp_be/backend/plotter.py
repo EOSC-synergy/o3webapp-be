@@ -18,6 +18,7 @@ from bokeh.plotting import figure, output_file, show, curdoc
 from bokeh.events import ButtonClick, Tap
 from bokeh.palettes import Spectral11, Category20
 from bokeh.models.tickers import AdaptiveTicker, CompositeTicker, YearsTicker, MonthsTicker, DaysTicker
+from bokeh.models.tools import HoverTool
 # bokeh io
 from bokeh.io import show, output, export_png, export_svgs
 from PIL import Image
@@ -129,8 +130,47 @@ class ZmPlotter(Plotter):
     def plot_data(self, plotdata):
         self.init_plotter(plotdata)
 
+
+        hoverTool = HoverTool(
+            tooltips = [
+            ("date", "@x{%F}"),
+            ("time", "@x{%T}"),
+            ("y", "$y"),
+            ("name","$name")
+            ],
+            formatters={'@x': 'datetime'},
+            mode = 'mouse'
+            )
+        
         p = figure(plot_width=1500, plot_height=500,
                    title=self.plotType.name, x_axis_type="datetime")
+        p.add_tools(hoverTool)
+
+
+
+
+
+        ####################################################
+        #+----------------+--------------+----------------+#
+        #|                   mmt_header                   |#
+        #+----------------+--------------+----------------+#
+        ####################################################
+        #+----------------+----------------+               #
+        #|+--------------+|+--------------+|               #
+        #|| mmt_0_title  ||| mmt_1_title  ||     ... *5    #
+        #|| mmt_0_del    ||| mmt_1_del    ||               #
+        #|+--------------+|+--------------+|               #
+        #|  legend_0_0    |  legend_1_0    |               #
+        #|  legend_0_1    |  legend_1_1    |               #
+        #|  legend_0_2    |  legend_1_2    |               #
+        #|  ...           |  ...           |               #
+        #|  legend_0_6    |  legend_1_6    |               #
+        #+----------------+----------------+               #
+        ####################################################
+
+
+
+
 
         # TODO add color , hide and delete button
         ###################  mmt block #####################
@@ -153,7 +193,7 @@ class ZmPlotter(Plotter):
         maxBoxNum = 5
         maxLegendNum = 7
         # mmt block header
-        mmtButtonGroup = RadioButtonGroup(labels=ZmPlotter.mmtLabels, css_classes = ["mmt_header"])
+        mmtButtonGroup = RadioButtonGroup(labels=ZmPlotter.mmtLabels, css_classes = ["mmt_header", "extra-buttons"])
         boxNum = ["number" for i in range(maxBoxNum + 1)]
         boxActivity = ["activity" for i in range(maxBoxNum + 1)]
         mmtBoxNum = RadioButtonGroup(
@@ -205,8 +245,10 @@ class ZmPlotter(Plotter):
                     boxTitle.button_type = 'success';
                     boxTitle.background=selColor;
                     var mmtLegend = mmtPlotArr[legendLayout.tags[0]];
+                    var mmtPlot = mmtLegend.renderers[0];
                     legendLayout.tags.splice(0,1);
                     mmtLegend.label = boxTitle.label;
+                    mmtPlot.name = boxTitle.label;
                     var legendNum = legendLayout.items.length;
                     legendLayout.items.splice(legendNum,0,mmtLegend);
                     legendLayout.change.emit();
@@ -653,12 +695,13 @@ class ZmPlotter(Plotter):
         return {'mmtModelArr': modelArr, 'mmtPlotArr': plotArr}
 
     def plot_model(self, plot, model, color):
+        modelName = model.get_name()
         #color = model.get_para_color()
         highlighted = model.get_para_highlighted()
         muted_alpha = 0.8 * float(highlighted) + 0.2
         data = model.get_val_cds()
         data['y'] = self.boxcar_mirror(10, data['y'])
-        return plot.line(data['x'], data['y'], line_dash="4 0", line_width=1,
+        return plot.line(data['x'], data['y'], line_dash="4 0", line_width=1, name = modelName,
                          line_color=color, line_alpha=0.5, muted_color=color, muted_alpha=muted_alpha)
 
     def setup_legends(self, plot, legendLayout):
