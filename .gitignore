@@ -32,3 +32,4 @@ venv/*
 *.elc
 .\#*
 
+egi_auth.txt
