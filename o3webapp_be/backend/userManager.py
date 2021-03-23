@@ -1,5 +1,5 @@
 from flask import url_for,redirect,request
-from .controller import APIInfoController,PlotypesController,ModelsInfoController,TypeModelsVarsController,PlotController
+from controller import APIInfoController,PlotypesController,ModelsInfoController,TypeModelsVarsController,PlotController
 
 # User Manager, which handles all kinds of user requests :
 # 1. Arranging the user info and user status, 

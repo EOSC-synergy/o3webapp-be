@@ -1,7 +1,7 @@
 from flask import Flask,request,url_for,redirect, jsonify
 from flask_cors import CORS
 import requests
-from .userManager import UserManager
+from userManager import UserManager
 
 
 # Backend interface, which is responsible for :
@@ -84,14 +84,16 @@ def login(auth_code):
     egi_token_url = 'https://aai-dev.egi.eu/oidc/token'
     headers = {'Content-Type': 'application/x-www-form-urlencoded'}
     data = {'grant_type':'authorization_code', 'code': auth_code,
-            'redirect_uri': 'o3web.test.fedcloud.eu'}
+            'redirect_uri': 'http://localhost:3000/redirect_url'}##o3web.test.fedcloud.eu
     auth = ('o3webapp', 'LTiU7yqg_GBCZlRjEVpctPOANIGjtzLGPFprIohg7pkOQ-Bl_iDEwjHdz9tBpL6qIiyN37SiJ83oLRrsv-qkpA')
     egi_auth = requests.post(egi_token_url, headers=headers, data=data, auth=auth).json()
+    print(egi_auth)
     access_token = egi_auth['access_token']
 
     userinfo_url='https://aai-dev.egi.eu/oidc/userinfo'
     headers = {"Authorization": "Bearer " + access_token}
     egi_userinfo = requests.get(userinfo_url, headers=headers).json()
+    print(egi_userinfo)
     username = egi_userinfo['name']
     sub = egi_userinfo['sub']
 

@@ -1,13 +1,14 @@
-from flask import url_for,redirect, Response
+from flask import url_for, redirect, Response
 import json
 from math import pi
 import numpy as np
 from scipy import signal
 
+
 # bokeh plot
 from bokeh.core.properties import String, Instance
 import pandas as pd
-from pandas import Series,DataFrame
+from pandas import Series, DataFrame
 from datetime import datetime as dt
 from bokeh.models import ColumnDataSource, Legend, LegendItem, CustomJS
 from bokeh.models import DatetimeTickFormatter, FuncTickFormatter, PrintfTickFormatter, NumeralTickFormatter
@@ -15,24 +16,26 @@ from bokeh.models import Button, Panel, Tabs, RadioButtonGroup, Div, Slider, Tex
 from bokeh.layouts import column, row, WidgetBox, widgetbox
 from bokeh.plotting import figure, output_file, show, curdoc
 from bokeh.events import ButtonClick, Tap
-from bokeh.palettes import Spectral11
+from bokeh.palettes import Spectral11, Category20
 from bokeh.models.tickers import AdaptiveTicker, CompositeTicker, YearsTicker, MonthsTicker, DaysTicker
 # bokeh io
 from bokeh.io import show, output, export_png, export_svgs
 from PIL import Image
-from bokeh.embed import json_item,file_html
+from bokeh.embed import json_item, file_html
 from bokeh.resources import CDN
 from io import StringIO
 
 from abc import ABC, abstractmethod
 
-from .plotData import PlotData, PlotType, OutputFormat
+from plotData import PlotData, PlotType, OutputFormat
 ###
 
 ###
-# Plotter, 
+# Plotter,
 # plotting the data stored within the plotData
 # considering the parameter for variables and legends.
+
+
 class Plotter(ABC):
 
     @abstractmethod
@@ -46,7 +49,7 @@ class Plotter(ABC):
             data = model.get_val_cds()
             df = pd.DataFrame(data=data)
             df['x'] = pd.to_datetime(df['x'])
-            modelDict = {'x':df['x'], 'y':df['y']}
+            modelDict = {'x': df['x'], 'y': df['y']}
             cdsModel = ColumnDataSource(data=modelDict)
             model.reset_val_cds(cdsModel)
         self.nameModelDict = plotdata.get_name_model_dict()
@@ -60,7 +63,6 @@ class Plotter(ABC):
 
     # TODO implemented in Responder, who takes care of the format of the output.
     def do_export(self, layout, plot):
-        
         if self.output == OutputFormat["csv"]:
             df = pd.DataFrame(self.build_models_dict())
             dfbuffer = StringIO()
@@ -68,14 +70,14 @@ class Plotter(ABC):
             dfbuffer.seek(0)
             data = dfbuffer.getvalue()
             return Response(data, mimetype="text/csv",
-                headers={"Content-Disposition": "attachment;filename={}".format("plot.csv")})
+                            headers={"Content-Disposition": "attachment;filename={}".format("plot.csv")})
         elif self.output == OutputFormat["png"]:
             plot.background_fill_color = None
             plot.border_fill_color = None
             # TODO avoid to generate file.
             data = export_png(plot, filename="plot.png")
             return Response(data, mimetype="image/png",
-                headers={"Content-Disposition": "attachment;filename={}".format("plot.png")})
+                            headers={"Content-Disposition": "attachment;filename={}".format("plot.png")})
         elif self.output == OutputFormat["svg"]:
             plot.background_fill_color = None
             plot.border_fill_color = None
@@ -83,7 +85,7 @@ class Plotter(ABC):
             # TODO avoid to generate file.
             data = export_svgs(plot, filename="plot.svg")
             return Response(data, mimetype="image/svg+xml",
-                headers={"Content-Disposition": "attachment;filename={}".format("plot.svg")})
+                            headers={"Content-Disposition": "attachment;filename={}".format("plot.svg")})
         elif self.output == OutputFormat["pdf"]:
             plot.background_fill_color = None
             plot.border_fill_color = None
@@ -93,39 +95,44 @@ class Plotter(ABC):
             pdf = image.convert('RGB')
             pdf.save(r'plot.pdf')
             return Response('plot.pdf', mimetype="application/pdf",
-                headers={"Content-Disposition": "attachment;filename={}".format("plot.pdf")})
+                            headers={"Content-Disposition": "attachment;filename={}".format("plot.pdf")})
         else:
             data = json.dumps(json_item(layout))
             return Response(data, mimetype='application/json')
 
     def boxcar_easy(self, window, data):
         boxcar = np.ones(window)
-        extLen = len(data)+2*window
+        extLen = len(data) + 2 * window
         extData = np.ones(extLen)
         extData[:window] = data[0]
-        extData[extLen-window:] = data[len(data)-1]
-        extData[window:extLen-window] = data
-        boxcar_extData = signal.convolve(extData/np.sum(boxcar), boxcar, mode='same')
-        return boxcar_extData[window:extLen-window]
+        extData[extLen - window:] = data[len(data) - 1]
+        extData[window:extLen - window] = data
+        boxcar_extData = signal.convolve(
+            extData / np.sum(boxcar), boxcar, mode='same')
+        return boxcar_extData[window:extLen - window]
 
     def boxcar_mirror(self, window, data):
         boxcar = np.ones(window)
-        sgnl = np.r_[data[window-1:0:-1],data,data[-2:-window-1:-1]]
-        boxcar_data = signal.convolve(sgnl/np.sum(boxcar), boxcar, mode='same')
-        return boxcar_data[window-1:-(window-1)]
+        sgnl = np.r_[data[window - 1:0:-1], data, data[-2:-window - 1:-1]]
+        boxcar_data = signal.convolve(
+            sgnl / np.sum(boxcar), boxcar, mode='same')
+        return boxcar_data[window - 1:-(window - 1)]
 
-# Plotter, 
+# Plotter,
 # plotting the data in *-zm plot type, time -> messurement,
 # whose x axis represents the time.
+
+
 class ZmPlotter(Plotter):
     mmtLabels = ["mean", "median", "trend"]
 
     def plot_data(self, plotdata):
         self.init_plotter(plotdata)
 
-        p = figure(plot_width = 1500 , plot_height=500, title=self.plotType.name, x_axis_type="datetime")
+        p = figure(plot_width=1500, plot_height=500,
+                   title=self.plotType.name, x_axis_type="datetime")
 
-        #TODO add color , hide and delete button
+        # TODO add color , hide and delete button
         ###################  mmt block #####################
         #+----------------+--------------+----------------+#
         #| mmtButtonGroup |  mmtBoxNum   | mmtBoxActivity |#
@@ -145,29 +152,32 @@ class ZmPlotter(Plotter):
         # ROW_2 :: mmt block                                ##################################
         maxBoxNum = 5
         maxLegendNum = 7
-        ## mmt block header
-        mmtButtonGroup = RadioButtonGroup(labels=ZmPlotter.mmtLabels)
-        boxNum = ["number" for i in range(maxBoxNum+1)]
-        boxActivity = ["activity" for i in range(maxBoxNum+1)]
-        mmtBoxNum = RadioButtonGroup(labels=boxNum, active=0, tags=[0], visible=False)
-        mmtBoxActivity = RadioButtonGroup(labels=boxActivity, active=0, visible=False)
+        # mmt block header
+        mmtButtonGroup = RadioButtonGroup(labels=ZmPlotter.mmtLabels, css_classes = ["mmt_header"])
+        boxNum = ["number" for i in range(maxBoxNum + 1)]
+        boxActivity = ["activity" for i in range(maxBoxNum + 1)]
+        mmtBoxNum = RadioButtonGroup(
+            labels=boxNum, active=0, tags=[0], visible=False)
+        mmtBoxActivity = RadioButtonGroup(
+            labels=boxActivity, active=0, visible=False)
         mmtLegendBlockHead = row(mmtButtonGroup, mmtBoxNum, mmtBoxActivity)
-        ## mmt box array
+        # mmt box array
         bgColor = "black"
         defaultBoxColor = "white"
         selectedBoxColor = "red"
         boxHeaderW = 100
         mmtLegendH = 20
         mmtLegendW = 400
-        legendLayout = Legend(items=[], tags = [i for i in range(maxBoxNum)], location="center")
-        #TODO add button beside the box title for color-div and remove-option of the box
+        legendLayout = Legend(
+            items=[], tags=[i for i in range(maxBoxNum)], location="center")
+        # TODO add button beside the box title for color-div and remove-option of the box
         mmtLegendBoxArr = self.setup_mmt_legendboxArr(maxBoxNum, maxLegendNum)
         mmtModelPlotArr = self.plot_mmt(maxBoxNum, p)
-        ## mmt block
+        # mmt block
         mmtLegendBlock = column(mmtLegendBlockHead, mmtLegendBoxArr)
-        mmtButtonGroup.js_on_click(CustomJS(args=dict(mmtLegendBlock=mmtLegendBlock, 
+        mmtButtonGroup.js_on_click(CustomJS(args=dict(mmtLegendBlock=mmtLegendBlock,
             legendLayout=legendLayout, mmtPlotArr=mmtModelPlotArr['mmtPlotArr'],
-            mmtLabels=ZmPlotter.mmtLabels, height=mmtLegendH, width=boxHeaderW, maxBoxNum=maxBoxNum, 
+            mmtLabels=ZmPlotter.mmtLabels, height=mmtLegendH, width=boxHeaderW, maxBoxNum=maxBoxNum,
             selColor=selectedBoxColor, defaultColor=defaultBoxColor), code="""
                 if(cb_obj.active == 'None') return;
                 var blockHeader = (mmtLegendBlock.children)[0].children;
@@ -213,11 +223,11 @@ class ZmPlotter(Plotter):
                 mmtLegendBlock.change.emit();
                 cb_obj.active = 'None';
                 """))
- 
+
         for boxIndex in range(maxBoxNum):
             legendBox = (mmtLegendBoxArr.children)[boxIndex]
             legendArr = legendBox.children
-            ################ Click box title
+            # Click box title
             legendBoxTitle = (legendArr[0].children)[0]
             legendBoxTitle.js_on_click(CustomJS(args=dict(mmtLegendBlock=mmtLegendBlock,
                 selColor=selectedBoxColor, defaultColor=defaultBoxColor), code="""
@@ -247,11 +257,11 @@ class ZmPlotter(Plotter):
                     }
                     mmtLegendBlock.change.emit();
                     """))
-            ################ Click box delete
+            # Click box delete
             legendBoxDelete = (legendArr[0].children)[2]
-            legendBoxDelete.js_on_click(CustomJS(args=dict(mmtLegendBlock=mmtLegendBlock, maxLegendNum=maxLegendNum, 
+            legendBoxDelete.js_on_click(CustomJS(args=dict(mmtLegendBlock=mmtLegendBlock, maxLegendNum=maxLegendNum,
                 legendLayout=legendLayout, modelNum=len(self.modelDict),
-                selColor=selectedBoxColor, defaultColor=defaultBoxColor),code="""
+                selColor=selectedBoxColor, defaultColor=defaultBoxColor), code="""
                     var boxIndex = cb_obj.origin.tags[0];
                     var delPos = modelNum + boxIndex;
                     var delMmtPlot = legendLayout.items[delPos]
@@ -307,13 +317,13 @@ class ZmPlotter(Plotter):
                     mmtLegendBlock.change.emit();
                     """))
 
-            ################ Click box legend
+            # Click box legend
             for legendIndex in range(1, maxLegendNum):
                 legend = legendArr[legendIndex]
                 # TODO legend.js_on_click to delete model #######################################
-                legend.js_on_click(CustomJS(args=dict(mmtLegendBlock=mmtLegendBlock, legendLayout=legendLayout, 
+                legend.js_on_click(CustomJS(args=dict(mmtLegendBlock=mmtLegendBlock, legendLayout=legendLayout,
                     mmtModelArr=mmtModelPlotArr['mmtModelArr'], mmtPlotArr=mmtModelPlotArr['mmtPlotArr'],
-                    mmtBoxArr=mmtLegendBoxArr, boxIndex=legendIndex, 
+                    mmtBoxArr=mmtLegendBoxArr, boxIndex=legendIndex,
                     modelDict=self.nameModelDict, modelNum=len(self.modelDict)), code="""
                         var boxIndex = cb_obj.origin.tags[0];
                         //search for the box
@@ -335,7 +345,7 @@ class ZmPlotter(Plotter):
                         if(mmtType == 0){
                             for (var j=0; j<yArr.length; j++){
                                 if(curLegendNum == 1){
-                                    yArr[j] = 0;
+                                    //yArr[j] = 0;
                                 }else{
                                     yArr[j] = (yArr[j]*(curLegendNum) - legendY[j])/(curLegendNum-1);
                                 }
@@ -353,9 +363,72 @@ class ZmPlotter(Plotter):
                                 for(var j=0; j<legenNum; j++){
                                     dataXArr.push(dataYArr[j][i]);
                                 }
+                                if(legenNum == 0) {
+                                    //yArr[i] = 0;
+                                    continue;
+                                }
                                 dataXArr.sort();
                                 yArr[i] = legenNum%2 ?dataXArr[(legenNum-1)/2]:
                                           (dataXArr[legenNum/2-1] + dataXArr[legenNum/2])/2;
+                            }
+                        }else if(mmtType == 2){
+                            var dataYArr=[];
+                            for(var i=1; i<=curLegendNum; i++){
+                                if(box.children[i].label != cb_obj.origin.label){
+                                    dataYArr.push(modelDict[box.children[i].label]['y']);
+                                }
+                            }
+                            for (var i=0; i<yArr.length; i++){
+                                var dataXArr = [];
+                                var legenNum =curLegendNum-1;
+                                for(var j=0; j<legenNum; j++){
+                                    dataXArr.push(dataYArr[j][i]);
+                                }
+
+                                //calculate trend with least squared fit
+                                if(legenNum == 0) {
+                                    //yArr[i] = 0;
+                                    continue;
+                                }else if(legenNum == 1) {
+                                    yArr[i] = dataXArr[0];
+                                    continue;
+                                }else if(legenNum == 2) {
+                                    yArr[i] = (dataXArr[0]+dataXArr[1])/2;
+                                    continue;
+                                }
+                                var scaleY = 10000;
+                                var offsetY = dataYArr[0][0];
+                                var factor = 60;
+                                var count = 0;
+                                var sumX = 0;
+                                var sumX2 = 0;
+                                var sumX3 = 0;
+                                var sumX4 = 0;
+                                var sumY = 0;
+                                var sumXY = 0;
+                                var sumX2Y = 0;
+                                for (var x = 0; x < dataXArr.length; x++)
+                                {
+                                    count++;
+                                    sumX += x;
+                                    sumX2 += x*x;
+                                    sumX3 += x*x*x;
+                                    sumX4 += x*x*x*x;
+                                    sumY += dataXArr[x];
+                                    sumXY += x*dataXArr[x];
+                                    sumX2Y += x*x*dataXArr[x];
+                                }
+                                //var det = count * sumX2 - sumX * sumX;
+                                //var offset = (sumX2 * sumY - sumX * sumXY) / det;
+                                //var scale = (count * sumXY - sumX * sumY) / det;
+                                //yArr[i] = offset + factor * scale;
+                                //continue;
+                                var det = count*sumX2*sumX4 - count*sumX3*sumX3 - sumX*sumX*sumX4 + 2*sumX*sumX2*sumX3 - sumX2*sumX2*sumX2;
+                                var offset = sumX*sumX2Y*sumX3 - sumX*sumX4*sumXY - sumX2*sumX2*sumX2Y + sumX2*sumX3*sumXY + sumX2*sumX4*sumY - sumX3*sumX3*sumY;
+                                var scale = -count*sumX2Y*sumX3 + count*sumX4*sumXY + sumX*sumX2*sumX2Y - sumX*sumX4*sumY - sumX2*sumX2*sumXY + sumX2*sumX3*sumY;
+                                var accel = sumY*sumX*sumX3 - sumY*sumX2*sumX2 - sumXY*count*sumX3 + sumXY*sumX2*sumX - sumX2Y*sumX*sumX + sumX2Y*count*sumX2;
+                                yArr[i] = (offset + factor*scale + factor*factor*accel)/det/scaleY+offsetY;
+                                    
                             }
                         }
 
@@ -378,16 +451,18 @@ class ZmPlotter(Plotter):
                         mmtLegendBlock.change.emit();
                         """))
 
-        # ROW_1 :: p + legends #######################################################################
+        # ROW_1 :: p + legends #######################################################################s
+        linePalette = Category20[20]
+        colorIndex = 0
         for name, model in self.modelDict.items():
-            renderer = self.plot_model(p, model)
+            renderer = self.plot_model(p, model, linePalette[maxBoxNum + colorIndex])
+            colorIndex += 1
             item = LegendItem(label=name, renderers=[renderer])
-            renderer_cb = CustomJS(args=dict(mmtLegendBlock=mmtLegendBlock, legendLayout=legendLayout, 
-                mmtModelArr=mmtModelPlotArr['mmtModelArr'], mmtPlotArr=mmtModelPlotArr['mmtPlotArr'],
-                height=mmtLegendH, width=mmtLegendW, maxLegendNum=maxLegendNum, modelDict=self.nameModelDict, 
-                modelNum=len(self.modelDict), model=model.get_val_cds(),
-                legendName=name, legendColor=renderer.glyph.line_color),
-                code="""
+            renderer_cb = CustomJS(args=dict(mmtLegendBlock=mmtLegendBlock, legendLayout=legendLayout,
+                    mmtModelArr=mmtModelPlotArr['mmtModelArr'], mmtPlotArr=mmtModelPlotArr['mmtPlotArr'],
+                    height=mmtLegendH, width=mmtLegendW, maxLegendNum=maxLegendNum, modelDict=self.nameModelDict,
+                    modelNum=len(self.modelDict), model=model.get_val_cds(),
+                    legendName=name, legendColor=renderer.glyph.line_color),code="""
 
                         var blockHeader = (mmtLegendBlock.children)[0].children;
                         var activeBox = blockHeader[2];
@@ -495,22 +570,40 @@ class ZmPlotter(Plotter):
                             }
                         }
                     """)
-            renderer.js_on_change('visible', renderer_cb) #'muted'
+            renderer.js_on_change('visible', renderer_cb)  # 'muted'
             legendLayout.items.append(item)
 
         self.setup_axis(p)
         p.toolbar.autohide = True
         self.setup_legends(p, legendLayout)
-
+        sliderLayout = self.setup_slider_layout(p, legendLayout)
         # LAYOUT :: ROW_1, ROW_2 #########################
-        layout = column(p, mmtLegendBlock)
+        layout = column(sliderLayout, mmtLegendBlock)
         # tab pages
         #tab1 = Panel(child=fig1, title="sine")
         #tab2 = Panel(child=fig2, title="cos")
         #tabs = Tabs(tabs=[ tab1, tab2 ])
 
         return self.do_export(layout, p)
-    
+
+    def setup_slider_layout(self, plot, legendLayout):
+        sampleModel = list(self.modelDict.values())[0]
+        timeLen = len(sampleModel.get_val_cds()['x'])
+        maxLen = timeLen / 10 + 1
+        callback = CustomJS(args=dict(legends=legendLayout.items,modelNum=len(self.modelDict)),code="""
+                for(let legend of legends){
+                    var lineData = legend.renderers[0].data_source;
+                    var dataY = lineData.data['y'];
+                    for (var i=0; i<dataY.length; i++){
+                        dataY[i] = dataY[i]+100*cb_obj.value;
+                    }
+                    lineData.change.emit();
+                }
+                """)
+        slider = Slider(start=1, end=maxLen, value=1, step=1, title="smooth factor")
+        slider.js_on_change('value', callback)
+        return column(slider, plot)
+
     def build_models_dict(self):
         modelsDict = {}
         firstModelData = self.modelList[0].get_val_cds()
@@ -520,47 +613,53 @@ class ZmPlotter(Plotter):
             modelData = model.get_val_cds()
             modelsDict[modelName] = modelData['y']
         return modelsDict
-    
+
     def setup_mmt_legendboxArr(self, maxBoxNum, maxLegendNum):
         legendNum = ["number" for i in range(maxLegendNum)]
         mmtLegendBoxArr = []
         for boxIndex in range(maxBoxNum):
-            boxTitle = Button(label="", tags=[-1, -1], width=0, height=0, visible=False)
-            mmtLegendNum = RadioButtonGroup(labels=legendNum, active=0, visible=False, disabled=True)
-            boxDel = Button(label="x", tags=[-1], width=0, height=0, visible=False)
+            boxTitle = Button(
+                label="", tags=[-1, -1], css_classes = ["mmt_" + str(boxIndex) + "_title"], width=0, height=0, visible=False)
+            mmtLegendNum = RadioButtonGroup(
+                labels=legendNum, active=0, visible=False, disabled=True)
+            boxDel = Button(
+                label="x", tags=[-1], css_classes = ["mmt_" + str(boxIndex) + "_del"], width=0, height=0, visible=False)
             boxHeaderArr = [boxTitle, mmtLegendNum, boxDel]
             boxHeader = row(boxHeaderArr)
             legendArr = [boxHeader]
             for legendIndex in range(maxLegendNum):
-                legendArr.append(Button(label="", tags=[-1, legendIndex + 1], width=0, height=0, visible=False))
+                legendArr.append(
+                    Button(label="", tags=[-1, legendIndex + 1], css_classes = ["mmt_" + str(boxIndex) + "_" + str(legendIndex)], width=0, height=0, visible=False))
             mmtLegendBoxArr.append(column(legendArr))
         return row(mmtLegendBoxArr)
 
     def plot_mmt(self, maxBoxNum, plot):
         mmtPalette = Spectral11[0:maxBoxNum]
         sampleModel = list(self.modelDict.values())[0]
-        data=sampleModel.get_val_cds()
+        data = sampleModel.get_val_cds()
         modelArr = []
         plotArr = []
         for mmtIndex in range(maxBoxNum):
             yArr = np.zeros(len(data['x']))
             yArr[:] = data['y'][0]
-            modelDict = {'x':data['x'], 'y':yArr}
+            modelDict = {'x': data['x'], 'y': yArr}
             mmtModel = ColumnDataSource(data=modelDict)
-            mmtPlot = plot.line('x', 'y', source=mmtModel, line_dash="4 0", line_width=2, line_color=mmtPalette[mmtIndex], line_alpha=0.6, visible=False)
-            mmtLegend = LegendItem(label='',tags = [mmtIndex], renderers=[mmtPlot])
+            mmtPlot = plot.line('x', 'y', source=mmtModel, line_dash="4 0", line_width=2,
+                                line_color=mmtPalette[mmtIndex], line_alpha=0.6, visible=False)
+            mmtLegend = LegendItem(
+                label='', tags=[mmtIndex], renderers=[mmtPlot])
             modelArr.append(mmtModel)
             plotArr.append(mmtLegend)
-        return {'mmtModelArr':modelArr, 'mmtPlotArr':plotArr}
+        return {'mmtModelArr': modelArr, 'mmtPlotArr': plotArr}
 
-    def plot_model(self, plot, model):
-        color = model.get_para_color()
+    def plot_model(self, plot, model, color):
+        #color = model.get_para_color()
         highlighted = model.get_para_highlighted()
         muted_alpha = 0.8 * float(highlighted) + 0.2
         data = model.get_val_cds()
         data['y'] = self.boxcar_mirror(10, data['y'])
         return plot.line(data['x'], data['y'], line_dash="4 0", line_width=1,
-                        line_color=color, line_alpha=0.5, muted_color=color, muted_alpha=muted_alpha)
+                         line_color=color, line_alpha=0.5, muted_color=color, muted_alpha=muted_alpha)
 
     def setup_legends(self, plot, legendLayout):
         # title
@@ -576,11 +675,11 @@ class ZmPlotter(Plotter):
         legendLayout.glyph_width = 50
         # orientation
         # legendLayout.orientation = "horizontal"
-        legendLayout.click_policy="hide"#"mute"  # or "hide"
+        legendLayout.click_policy = "hide"  # "mute"  # or "hide"
         # legendLayout.location = "top_right"
         plot.add_layout(legendLayout, 'right')
         return legendLayout
-        
+
     def setup_axis(self, plot):
         # axis
         plot.xaxis.axis_line_width = 2
@@ -606,7 +705,7 @@ class ZmPlotter(Plotter):
         ONE_MINUTE = 60.0 * ONE_SECOND
         ONE_HOUR = 60 * ONE_MINUTE
         ONE_DAY = 24 * ONE_HOUR
-        ONE_MONTH = 30 * ONE_DAY # An approximation, obviously.
+        ONE_MONTH = 30 * ONE_DAY  # An approximation, obviously.
         ONE_YEAR = 365 * ONE_DAY
         ymdTicker = CompositeTicker()
         ymdTicker.tickers = [
@@ -614,42 +713,42 @@ class ZmPlotter(Plotter):
                 mantissas=[1, 2, 5],
                 base=10,
                 min_interval=0,
-                max_interval=500*ONE_MILLI,
+                max_interval=500 * ONE_MILLI,
                 num_minor_ticks=0
             ),
             AdaptiveTicker(
                 mantissas=[1, 2, 5, 10, 15, 20, 30],
                 base=60,
                 min_interval=ONE_SECOND,
-                max_interval=30*ONE_MINUTE,
+                max_interval=30 * ONE_MINUTE,
                 num_minor_ticks=0
             ),
             AdaptiveTicker(
                 mantissas=[1, 2, 4, 6, 8, 12],
                 base=24,
                 min_interval=ONE_HOUR,
-                max_interval=12*ONE_HOUR,
+                max_interval=12 * ONE_HOUR,
                 num_minor_ticks=0
             ),
             AdaptiveTicker(
                 mantissas=[1, 2, 5, 10, 15],
                 base=30,
                 min_interval=ONE_DAY,
-                max_interval=15*ONE_DAY,
+                max_interval=15 * ONE_DAY,
                 num_minor_ticks=0
             ),
             AdaptiveTicker(
                 mantissas=[1, 2, 4, 6],
                 base=12,
                 min_interval=ONE_MONTH,
-                max_interval=6*ONE_MONTH,
+                max_interval=6 * ONE_MONTH,
                 num_minor_ticks=0
             ),
             AdaptiveTicker(
                 mantissas=[1, 2, 3, 4, 5],
                 base=10,
                 min_interval=ONE_YEAR,
-                max_interval=5*ONE_YEAR,
+                max_interval=5 * ONE_YEAR,
                 num_minor_ticks=0
             ),
             DaysTicker(days=list(range(1, 32))),
@@ -665,7 +764,7 @@ class ZmPlotter(Plotter):
             YearsTicker(),
         ]
         plot.xaxis.ticker = ymdTicker
-        
+
         # format
         # plot.xaxis[0].formatter = NumeralTickFormatter(format="0.0%")
         # plot.yaxis[0].formatter = NumeralTickFormatter(format="$0.00")
@@ -674,23 +773,25 @@ class ZmPlotter(Plotter):
         # plot.yaxis.formatter = FuncTickFormatter(code="""
         #    return Math.floor(tick) + " + " + (tick % 1).toFixed(2)
         #    """)
-        plot.xaxis.formatter=DatetimeTickFormatter(
-                hours = ['%m/%d/%Y%Hh', '%m/%d/%Y%Hh'],
-                days = ['%m/%d/%Y', '%m/%d/%Y'],
-                months = ['%m. %Y', '%b %Y'],
-                years = ['%m. %Y']
+        plot.xaxis.formatter = DatetimeTickFormatter(
+            hours=['%m/%d/%Y%Hh', '%m/%d/%Y%Hh'],
+            days=['%m/%d/%Y', '%m/%d/%Y'],
+            months=['%m. %Y', '%b %Y'],
+            years=['%m. %Y']
             )
         plot.yaxis.major_label_text_color = "orange"
         # orientation
-        plot.xaxis.major_label_orientation = pi/4
+        plot.xaxis.major_label_orientation = pi / 4
         plot.yaxis.major_label_orientation = "vertical"
 
 
 class Tco3ZmPlotter(ZmPlotter):
     pass
 
+
 class Vmro3ZmPlotter(ZmPlotter):
     pass
+
 
 class Tco3ReturnPlotter(Plotter):
     def plot_data(self, plotdata):
@@ -698,4 +799,3 @@ class Tco3ReturnPlotter(Plotter):
 
     def build_models_dict(self):
         pass
-    
