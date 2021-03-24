@@ -1,6 +1,7 @@
-from flask import Flask,request,url_for,redirect, jsonify
+from flask import Flask, request, url_for, redirect, jsonify, json
 from flask_cors import CORS
 import requests
+from werkzeug.exceptions import HTTPException
 from userManager import UserManager
 
 
@@ -99,10 +100,17 @@ def login(auth_code):
 
     return jsonify({'sub': sub, 'name': username})
 
-#with app.test_request_context():
-    #print(url_for('/plot/', opID ='api_info'))
-    #print(url_for('static', filename='plotpage.html'))
 
-#with app.test_request_context('/plot/', method='POST'):
-    #assert request.path == '/plot/'
-    #assert request.method == 'POST'
+@app.errorhandler(HTTPException)
+def handle_exception(e):
+    """Return JSON instead of HTML for HTTP errors."""
+    # start with the correct headers and status code from the error
+    response = e.get_response()
+    # replace the body with JSON
+    response.data = json.dumps({
+        "code": e.code,
+        "name": e.name,
+        "description": e.description,
+    })
+    response.content_type = "application/json"
+    return response
