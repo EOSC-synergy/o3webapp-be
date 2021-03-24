@@ -6,7 +6,12 @@ from .requestor import APIInfoRequestor,PlotypesRequestor,ModelsInfoRequestor,Ty
 from .requestParser import TypeModelsVarsParser,Tco3ZmParser,Tco3ReturnParser,Vmro3ZmParser, PlotParser
 from .plotter import Tco3ZmPlotter, Vmro3ZmPlotter, Tco3ReturnPlotter
 
-
+####################################################
+#version: V1.0
+#author: Boyan,zhong
+#className: Controller
+#packageName: static
+#description:
 # Controller, scheduling the process for handling the user-request. 
 # Specific controller handles the request-object with the corresponding operation ID.
 # 1. parsing the request-object offered by user-manager into plot-data.                             (plot-process)
@@ -16,6 +21,7 @@ from .plotter import Tco3ZmPlotter, Vmro3ZmPlotter, Tco3ReturnPlotter
 # 5. merging the plot-data containing the new model-data with old one within the plot-data-merger.  (plot-process)
 # 6. passing the merged complete plot-data to the ploter responsible for drawing the figure.        (plot-process)
 # 7. responding the resulting plot or file to the user-manager.
+####################################################
 class Controller(ABC):
     def __init__(self, jsonRequest):
         self.jsonRequest = jsonRequest

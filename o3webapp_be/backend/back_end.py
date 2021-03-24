@@ -3,12 +3,20 @@ from flask_cors import CORS
 import requests
 import os
 from .userManager import UserManager
+from bokeh.core.properties import String, Instance
 
+####################################################
+#version: V1.0
+#author: Boyan zhong
+#className: back_end
+#packageName: static
+#description: Backend interface, which is responsible for :
+#             1. listening to the user request from frontend,
+#             2. passing all the information following the url
+#             3. and the request-object to the user manager handling
+#             with the corresponding process.
+####################################################
 
-# Backend interface, which is responsible for :
-# 1. listening to the user request from frontend,
-# 2. passing all the information following the url
-# 3. and the request-object to the user manager handling request with the corresponding process.
 app = Flask(__name__)
 cors = CORS(app)
 

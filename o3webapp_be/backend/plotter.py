@@ -4,8 +4,6 @@ from math import pi
 import numpy as np
 from scipy import signal
 
-# bokeh plot
-from bokeh.core.properties import String, Instance
 import pandas as pd
 from pandas import Series,DataFrame
 from datetime import datetime as dt
@@ -27,12 +25,17 @@ from io import StringIO
 from abc import ABC, abstractmethod
 
 from .plotData import PlotData, PlotType, OutputFormat
-###
 
-###
-# Plotter, 
-# plotting the data stored within the plotData
-# considering the parameter for variables and legends.
+####################################################
+#version: V1.0
+#author: Danni Bao ,Jingling He
+#className: Plotter
+#packageName: static
+#description: Plotter, plotting the data stored within the plotData
+#             considering the parameter for variables and legends.
+####################################################
+from bokeh.core.properties import String, Instance
+
 class Plotter(ABC):
 
     @abstractmethod

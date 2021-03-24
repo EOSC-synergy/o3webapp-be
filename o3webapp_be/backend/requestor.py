@@ -1,9 +1,13 @@
 import requests
 import json
-
 from .plotData import PlotData
-
-# Requestor, querying the info or data from O3as-API.
+####################################################
+# version: V1.0
+# author: Boyan zhong,Danni Bao
+# className: PlotData
+# packageName: static
+# description: Requestor, querying the info or data from O3as-API.
+####################################################
 class Requestor:
     def __init__(self):
         self.url = 'http://o3api.test.fedcloud.eu:30509/api/'

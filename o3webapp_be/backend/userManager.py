@@ -1,12 +1,17 @@
 from flask import url_for,redirect,request
 from .controller import APIInfoController,PlotypesController,ModelsInfoController,TypeModelsVarsController,PlotController
-
-# User Manager, which handles all kinds of user requests :
-# 1. Arranging the user info and user status, 
+####################################################
+#version: V1.0
+#author: Boyan zhong
+#className: userManager
+#packageName: static
+#description: User Manager, which handles all kinds of user requests :
+# 1. Arranging the user info and user status,
 #    for example authenticated status, user cookies and sessions.
 # 2. Handling the request-object received by backend interface,
 #    choosing specific controller to handle the request corresponding to the operation ID,
 #    extracting the json form from the request-object and feeding it to the controller.
+####################################################
 
 class UserManager:
 
