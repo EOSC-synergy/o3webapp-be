@@ -54,7 +54,7 @@ class UserManager:
             sub = egi_userinfo['sub']
             return jsonify({'sub': sub, 'name': username})
         else:
-            return redirect(url_for('static', filename='plotpage.html'))
+            return jsonify({'sub': '', 'name': ''})
         
     # 1. Checking the api_info
     # 2. Updating the list of plot types
@@ -65,4 +65,4 @@ class UserManager:
         if self.userRequest.method == 'POST':
             return UserManager.opDict[opID](self.jsonRequest).handle_process()
         else:
-            return redirect(url_for('static', filename='plotpage.html'))
+            return jsonify({'status': 'error', 'name':opID.value})

@@ -42,7 +42,7 @@ def handle_request_for_plot(pType):
         return r 
 
 #/download/<format> -> download the plot in the given format (CSV, PNG, PDF...)
-@app.route('/download/<format>', methods=['GET', 'POST'])
+@app.route('/download111/<format>', methods=['GET', 'POST'])
 def handle_request_for_download(format):
     try:
         userManager = UserManager(request)
@@ -110,15 +110,22 @@ parser.add_argument('task')
 
 class Plot(Resource):
     def get(self, format):
-        pass
+        return 'cant find download information',404
 
     def post(self, format):
+        try:
+            userManager = UserManager(request)
+            r = userManager.handle_process_on_plotpage(OpID.plot)
+        except Exception:
+            print("download error")
+            return "json file with exception info"
+        else:
+            return r
         #args = parser.parse_args()
         #todo_id = int(max(TODOS.keys()).lstrip('todo')) + 1
         #todo_id = 'todo%i' % todo_id
         #TODOS[todo_id] = {'task': args['task']}
         #return TODOS[todo_id], 201
-        pass
 
 api.add_resource(Plot, '/download/<format>')
 
