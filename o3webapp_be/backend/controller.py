@@ -6,7 +6,6 @@ from requestor import APIInfoRequestor,PlotypesRequestor,ModelsInfoRequestor,Typ
 from requestParser import TypeModelsVarsParser,Tco3ZmParser,Tco3ReturnParser,Vmro3ZmParser, PlotParser
 from plotter import Tco3ZmPlotter, Vmro3ZmPlotter, Tco3ReturnPlotter
 
-
 # Controller, scheduling the process for handling the user-request. 
 # Specific controller handles the request-object with the corresponding operation ID.
 # 1. parsing the request-object offered by user-manager into plot-data.                             (plot-process)
@@ -82,7 +81,6 @@ class PlotController(RemoteController):
 
     def handle_process(self):
         self.plotData = self.plotParser.parse_request_2_plotdata(self.jsonRequest)
-        # TODO check plotdata
         #self.plotData.print()
         modelDataJsonFile = self.plotRequestor.request_model_data(self.plotData)
         #print(modelDataJsonFile)
