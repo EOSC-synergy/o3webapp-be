@@ -10,6 +10,7 @@ data/*
 output/*
 !output/.gitignore
 o3webapp_be/backend/venv/*
+venv/*
 
 # Files 
 *.pdf
