@@ -1,10 +1,10 @@
 from flask import request,jsonify
-from .plotData import PlotData
-from .requestor import APIInfoRequestor,PlotypesRequestor,ModelsInfoRequestor,TypeModelsVarsRequestor,Tco3ZmRequestor,Tco3ReturnRequestor,Vmro3ZmRequestor,InfoUpdateRequestor,PlotDataRequestor
-from .requestParser import TypeModelsVarsParser,Tco3ZmParser,Tco3ReturnParser,Vmro3ZmParser, PlotParser
-from .plotter import Tco3ZmPlotter, Vmro3ZmPlotter, Tco3ReturnPlotter
-
 from abc import ABC, abstractmethod
+
+from plotData import PlotData
+from requestor import APIInfoRequestor,PlotypesRequestor,ModelsInfoRequestor,TypeModelsVarsRequestor,Tco3ZmRequestor,Tco3ReturnRequestor,Vmro3ZmRequestor,InfoUpdateRequestor,PlotDataRequestor
+from requestParser import TypeModelsVarsParser,Tco3ZmParser,Tco3ReturnParser,Vmro3ZmParser, PlotParser
+from plotter import Tco3ZmPlotter, Vmro3ZmPlotter, Tco3ReturnPlotter
 
 # Controller, scheduling the process for handling the user-request. 
 # Specific controller handles the request-object with the corresponding operation ID.
@@ -81,7 +81,6 @@ class PlotController(RemoteController):
 
     def handle_process(self):
         self.plotData = self.plotParser.parse_request_2_plotdata(self.jsonRequest)
-        # TODO check plotdata
         #self.plotData.print()
         modelDataJsonFile = self.plotRequestor.request_model_data(self.plotData)
         #print(modelDataJsonFile)

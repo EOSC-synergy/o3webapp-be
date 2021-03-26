@@ -9,7 +9,7 @@ data/*
 !data/.gitignore
 output/*
 !output/.gitignore
-o3webapp_be/backend/venv/*
+venv/*
 
 # Files 
 *.pdf
@@ -32,3 +32,4 @@ o3webapp_be/backend/venv/*
 *.elc
 .\#*
 
+egi_auth.txt

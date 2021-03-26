@@ -1,7 +1,7 @@
 import enum
 from bokeh.models import ColumnDataSource
 from bokeh.core.property.color import Color
-
+import copy
 from flask import jsonify
 
 # three plot types, default as tco3_zm = 1
@@ -28,7 +28,6 @@ class OutputFormat(enum.Enum):
 class PlotData:
     def __init__(self, ptype, varData, output):
         self.ptype = PlotType[ptype]
-        print(output)
         self.output = OutputFormat[output]
         self.init_var_model_data(varData)
 
@@ -61,8 +60,14 @@ class PlotData:
     def get_modeldata(self):
         return self.modelData
 
+    def get_modeldata_num(self):
+        return self.modelData.get_model_num()
+
     def get_name_model_dict(self):
         return self.modelData.get_dict()
+    
+    def copy_name_model_dict(self):
+        return self.modelData.copy_dict()
 
     def get_modeldata_dict(self):
         return self.modelData.get_model_dict()
@@ -90,10 +95,19 @@ class Data:
         self.modelDict = {}
         self.set_para_in_modelDict(modeldata)
 
+    def get_model_num(self):
+        return len(self.modelDict)
+
     def get_dict(self):
         nameModelDict = {}
         for name, model in self.modelDict.items():
             nameModelDict[name]= model.get_val_cds()
+        return nameModelDict
+
+    def copy_dict(self):
+        nameModelDict = {}
+        for name, model in self.modelDict.items():
+            nameModelDict[name]= model.copy_val_cds()
         return nameModelDict
 
     def get_model_dict(self):
@@ -154,10 +168,16 @@ class Model:
     def get_val_cds(self):
         return self.val.get_cds()
 
+    def copy_val_cds(self):
+        return self.val.copy_cds()
+
     def set_val_cds(self, valDict):
         arrayX = valDict[Model.defaultX]
         arrayY = valDict[Model.defaultY]
         self.val.set_cds(arrayX, arrayY)
+    
+    def reset_val_cds(self, cds):
+        self.val.reset_cds(cds)
 
     def get_para(self):
         return self.para
@@ -182,6 +202,12 @@ class ModelVal:
 
     def get_cds(self):
         return self.cds.data
+        
+    def copy_cds(self):
+        return copy.deepcopy(self.cds.data)
+
+    def reset_cds(self, cds):
+        self.cds = cds
 
     def set_cds(self, arrayX, arrayY):
         cName = self.get_coord()
