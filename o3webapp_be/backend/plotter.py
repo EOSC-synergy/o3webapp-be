@@ -30,7 +30,7 @@ import csv
 from pathlib import Path
 import os
 
-from plotData import PlotData, PlotType, OutputFormat
+from .plotData import PlotData, PlotType, OutputFormat
 
 # Plotter,
 # plotting the data stored within the plotData

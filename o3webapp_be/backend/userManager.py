@@ -3,7 +3,7 @@ from flask import url_for,redirect,request, jsonify
 import requests
 import os
 
-from controller import APIInfoController,PlotypesController,ModelsInfoController,TypeModelsVarsController,PlotController
+from .controller import APIInfoController,PlotypesController,ModelsInfoController,TypeModelsVarsController,PlotController
 
 
 # Five kinds of operations, identified by OpID, default as api_info = 1
