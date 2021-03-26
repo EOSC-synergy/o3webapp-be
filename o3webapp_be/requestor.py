@@ -2,7 +2,7 @@ import requests
 import json
 import os
 
-from plotData import PlotData
+from o3webapp_be.plotData import PlotData
 
 ####################################################
 # version: V1.0

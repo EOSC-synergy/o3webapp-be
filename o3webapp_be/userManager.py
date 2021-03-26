@@ -3,7 +3,7 @@ from flask import url_for,redirect,request, jsonify
 import requests
 import os
 
-from controller import APIInfoController,PlotypesController,ModelsInfoController,TypeModelsVarsController,PlotController
+from o3webapp_be.controller import APIInfoController,PlotypesController,ModelsInfoController,TypeModelsVarsController,PlotController
 
 
 ####################################################

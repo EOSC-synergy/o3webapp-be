@@ -30,7 +30,7 @@ import csv
 from pathlib import Path
 import os
 
-from plotData import PlotData, PlotType, OutputFormat
+from o3webapp_be.plotData import PlotData, PlotType, OutputFormat
 
 ####################################################
 #version: V1.0
