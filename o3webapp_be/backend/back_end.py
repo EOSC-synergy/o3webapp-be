@@ -1,9 +1,14 @@
-from flask import Flask, request, url_for, redirect, jsonify, json
+from flask import Flask, request, url_for, redirect, jsonify, json,send_from_directory
 from flask_cors import CORS
 from flask_restful import reqparse, abort, Api, Resource
 from werkzeug.exceptions import HTTPException
 from userManager import UserManager, OpID
 from backendException import LoginException
+from pathlib import Path
+import os
+import io
+import base64
+from PIL import Image
 
 
 # Backend interface, which is responsible for :
@@ -12,6 +17,7 @@ from backendException import LoginException
 # 3. and the request-object to the user manager handling request with the corresponding process.
 app = Flask(__name__)
 cors = CORS(app)
+app.use_x_sendfile=True
 
 ########################################
 # url list:                             
@@ -23,8 +29,8 @@ def handle_request_for_ptype():
     try:
         userManager = UserManager(request)
         r = userManager.handle_process_on_plotpage(OpID.p_type)
-    except Exception:
-        print("plot type error")
+    except Exception as e:
+        print(e)
         return ""
     else:
         return r
@@ -35,20 +41,20 @@ def handle_request_for_plot(pType):
     try:
         userManager = UserManager(request)
         r = userManager.handle_process_on_plotpage(OpID.plot)
-    except Exception:
-        print("plot error")
+    except Exception as e:
+        print(e)
         return "file"
     else:
-        return r 
+        return r
 
 #/download/<format> -> download the plot in the given format (CSV, PNG, PDF...)
-@app.route('/download111/<format>', methods=['GET', 'POST'])
+@app.route('/download11/<format>', methods=['GET', 'POST'])
 def handle_request_for_download(format):
     try:
         userManager = UserManager(request)
         r = userManager.handle_process_on_plotpage(OpID.plot)
-    except Exception:
-        print("download error")
+    except Exception as e:
+        print(e)
         return "json file with exception info"
     else:
         return r
@@ -59,8 +65,8 @@ def handle_request_for_typemv(pType):
     try:
         userManager = UserManager(request)
         r = userManager.handle_process_on_plotpage(OpID.t_M_V)
-    except Exception:
-        print("model list error")
+    except Exception as e:
+        print(e)
         return "json file with exception info"
     else:
         return r
@@ -75,8 +81,8 @@ def login(auth_code):
         r = userManager.handle_process_on_loginpage(auth_code)
     except LoginException as e:
         return e.args
-    except Exception:
-        print("login error")
+    except Exception as e:
+        print(e)
         return ""
     else:
         return r
@@ -105,9 +111,6 @@ def handle_exception(e):
 ########################################
 api = Api(app)
 
-parser = reqparse.RequestParser()
-parser.add_argument('task')
-
 class Plot(Resource):
     def get(self, format):
         return 'cant find download information',404
@@ -116,16 +119,32 @@ class Plot(Resource):
         try:
             userManager = UserManager(request)
             r = userManager.handle_process_on_plotpage(OpID.plot)
-        except Exception:
-            print("download error")
-            return "json file with exception info"
+            #print(r)
+            img = self.get_encoded_img()
+            response_data = {"image": img}
+        except FileNotFoundError as e:
+            print(e)
+            return "json file with exception info",204
+        except Exception as e:
+            print(e)
+            return "json file with exception info",205
         else:
-            return r
-        #args = parser.parse_args()
-        #todo_id = int(max(TODOS.keys()).lstrip('todo')) + 1
-        #todo_id = 'todo%i' % todo_id
-        #TODOS[todo_id] = {'task': args['task']}
-        #return TODOS[todo_id], 201
+            return response_data, 200
+            #return jsonify(response_data),200
+            #return r,200
+
+    def get_encoded_img(self):
+        folder_path = Path(os.getenv('PLOT_FOLDER'))
+        img_byte_arr = io.BytesIO()
+        img = Image.open(folder_path/"pdf/plot.png", mode='r')
+        #img.save(img_byte_arr, format='PNG')
+        pdf = img.convert('RGB')
+        pdf.save(img_byte_arr, format='PDF')
+        my_encoded_img = base64.encodebytes(img_byte_arr.getvalue()).decode('ascii')
+        return my_encoded_img
 
 api.add_resource(Plot, '/download/<format>')
+
+
+
 

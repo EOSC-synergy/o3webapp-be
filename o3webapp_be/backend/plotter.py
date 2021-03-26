@@ -25,10 +25,12 @@ from PIL import Image
 from bokeh.embed import json_item, file_html
 from bokeh.resources import CDN
 from io import StringIO
+from selenium import webdriver
 import csv
+from pathlib import Path
+import os
 
 from plotData import PlotData, PlotType, OutputFormat
-
 
 # Plotter,
 # plotting the data stored within the plotData
@@ -61,16 +63,19 @@ class Plotter(ABC):
 
     # TODO implemented in Responder, who takes care of the format of the output.
     def do_export(self, layout, plot):
+        folder_path = Path(os.getenv('PLOT_FOLDER'))
         print(self.output)
+        #options = webdriver.ChromeOptions()
+        #options.add_experimental_option('excludeSwitches', ['enable-logging'])
         if self.output == OutputFormat["csv"]:
             #modelDict = self.build_models_dict()
-            #with open('o3webapp_be/backend/plot/csv/plot.csv', 'w', newline='') as csvfile:
+            #with open(folder_path/'csv/plot.csv', 'w', newline='') as csvfile:
             #    writer = csv.writer(csvfile, delimiter = ' ')
             #    for name, model in modelDict.items():
             #        writer.writerow(model)
 
             df = pd.DataFrame(self.build_models_dict())
-            df.to_csv('o3webapp_be/backend/plot/csv/plot.csv', encoding='utf-8', index=False)
+            df.to_csv(folder_path/'csv/plot.csv', encoding='utf-8', index=False)
 
             #df = pd.DataFrame(self.build_models_dict())
             #dfbuffer = StringIO()
@@ -79,32 +84,32 @@ class Plotter(ABC):
             #data = dfbuffer.getvalue()
             #return Response(data, mimetype="text/csv",
             #                headers={"Content-Disposition": "attachment;filename={}".format("plot.csv")})
-            return send_from_directory('o3webapp_be/backend/plot/csv', "plot.csv", as_attachment = True)
+            return send_from_directory(folder_path/'csv/', "plot.csv", as_attachment = True)
         elif self.output == OutputFormat["png"]:
             plot.background_fill_color = None
             plot.border_fill_color = None
-            data = export_png(plot, filename="o3webapp_be/backend/plot/png/plot.png")
+            data = export_png(plot, filename=folder_path/"png/plot.png")
             #return Response(data, mimetype="image/png",
             #                headers={"Content-Disposition": "attachment;filename={}".format("plot.png")})
-            return send_from_directory('o3webapp_be/backend/plot/png', "plot.png", as_attachment = True)
+            return send_from_directory(folder_path/'png/', "plot.png", as_attachment = True)
         elif self.output == OutputFormat["svg"]:
             plot.background_fill_color = None
             plot.border_fill_color = None
             plot.output_backend = "svg"
-            data = export_svgs(plot, filename="o3webapp_be/backend/plot/svg/plot.svg")
+            data = export_svgs(plot, filename=folder_path/"svg/plot.svg")
             #return Response(data, mimetype="image/svg+xml",
             #                headers={"Content-Disposition": "attachment;filename={}".format("plot.svg")})
-            return send_from_directory('o3webapp_be/backend/plot/svg', "plot.svg", as_attachment = True)
+            return send_from_directory(folder_path/'svg/', "plot.svg", as_attachment = True)
         elif self.output == OutputFormat["pdf"]:
             plot.background_fill_color = None
             plot.border_fill_color = None
-            png = export_png(plot, filename="o3webapp_be/backend/plot/pdf/plot.png")
-            image = Image.open(r'o3webapp_be/backend/plot/pdf/plot.png')
+            png = export_png(plot, filename=folder_path/"pdf/plot.png")
+            image = Image.open(folder_path/"pdf/plot.png")
             pdf = image.convert('RGB')
-            pdf.save(r'o3webapp_be/backend/plot/pdf/plot.pdf')
-            #return Response('plot.pdf', mimetype="application/pdf",
+            pdf.save(folder_path/'pdf/plot.pdf')
+            #file = Response(pdf, mimetype="application/pdf",
             #                headers={"Content-Disposition": "attachment;filename={}".format("plot.pdf")})
-            return send_from_directory('o3webapp_be/backend/plot/pdf', "plot.pdf", as_attachment = True)
+            return send_from_directory(folder_path/"pdf/", "plot.pdf", as_attachment = True)
         else:
             data = json.dumps(json_item(layout))
             return Response(data, mimetype='application/json')

@@ -56,6 +56,11 @@ WORKDIR /srv/o3webapp-be
 # Set environments
 ENV FLASK_APP o3webapp_be.backend.back_end.py
 ENV LANG C.UTF-8
+ENV O3API_URL http://o3api.test.fedcloud.eu:30509/api/
+ENV EGI_TOKEN_URL https://aai-dev.egi.eu/oidc/token
+ENV EGI_USERINFO_URL https://aai-dev.egi.eu/oidc/userinfo
+ENV SECRET LTiU7yqg_GBCZlRjEVpctPOANIGjtzLGPFprIohg7pkOQ-Bl_iDEwjHdz9tBpL6qIiyN37SiJ83oLRrsv-qkpA
+ENV PLOT_FOLDER o3webapp_be/backend/plot/
 
 # Expose the port
 EXPOSE 5000

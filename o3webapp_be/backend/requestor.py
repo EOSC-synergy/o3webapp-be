@@ -1,12 +1,13 @@
 import requests
 import json
+import os
 
 from plotData import PlotData
 
 # Requestor, querying the info or data from O3as-API.
 class Requestor:
     def __init__(self):
-        self.url = 'http://o3api.test.fedcloud.eu:30509/api/'
+        self.url = os.getenv('O3API_URL')
     
     def print_url_request(self):
         return self.url

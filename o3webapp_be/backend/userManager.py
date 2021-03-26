@@ -1,6 +1,7 @@
 import enum
 from flask import url_for,redirect,request, jsonify
 import requests
+import os
 
 from controller import APIInfoController,PlotypesController,ModelsInfoController,TypeModelsVarsController,PlotController
 
@@ -39,15 +40,15 @@ class UserManager:
     def handle_process_on_loginpage(self, auth_code):
 
         if self.userRequest.method == 'POST':
-            egi_token_url = 'https://aai-dev.egi.eu/oidc/token'
+            egi_token_url = os.getenv('EGI_TOKEN_URL')
             headers = {'Content-Type': 'application/x-www-form-urlencoded'}
             data = {'grant_type':'authorization_code', 'code': auth_code,
                     'redirect_uri': 'http://localhost:3000/redirect_url'}##o3web.test.fedcloud.eu
-            auth = ('o3webapp', 'LTiU7yqg_GBCZlRjEVpctPOANIGjtzLGPFprIohg7pkOQ-Bl_iDEwjHdz9tBpL6qIiyN37SiJ83oLRrsv-qkpA')
+            auth = ('o3webapp', os.getenv('SECRET'))
             egi_auth = requests.post(egi_token_url, headers=headers, data=data, auth=auth).json()
             access_token = egi_auth['access_token']
 
-            userinfo_url='https://aai-dev.egi.eu/oidc/userinfo'
+            userinfo_url= os.getenv('EGI_USERINFO_URL')
             headers = {"Authorization": "Bearer " + access_token}
             egi_userinfo = requests.get(userinfo_url, headers=headers).json()
             username = egi_userinfo['name']
