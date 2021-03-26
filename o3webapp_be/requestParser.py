@@ -2,8 +2,14 @@ import json
 import enum
 
 from plotData import PlotData
-
-# Parser, parsing the request-object into info or plotData.
+####################################################
+#version: V1.0
+#author: Boyan zhong
+#className: requestParser
+#packageName: static
+#description: 
+####################################################
+#Parser, parsing the request-object into info or plotData.
 class Parser:
     pass
     

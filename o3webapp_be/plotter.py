@@ -32,6 +32,13 @@ import os
 
 from plotData import PlotData, PlotType, OutputFormat
 
+####################################################
+#version: V1.0
+#author: Danni Bao ,Jingling He
+#className: Plotter
+#packageName: static
+#description: 
+####################################################
 # Plotter,
 # plotting the data stored within the plotData
 # considering the parameter for variables and legends.

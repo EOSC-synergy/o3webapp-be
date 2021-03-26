@@ -10,6 +10,13 @@ import io
 import base64
 from PIL import Image
 
+####################################################
+#version: V1.0
+#author: Boyan zhong
+#className: back_end
+#packageName: static
+#description: 
+####################################################
 
 # Backend interface, which is responsible for :
 # 1. listening to the user request from frontend,

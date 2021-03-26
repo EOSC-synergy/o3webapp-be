@@ -6,6 +6,13 @@ import os
 from controller import APIInfoController,PlotypesController,ModelsInfoController,TypeModelsVarsController,PlotController
 
 
+####################################################
+#version: V1.0
+#author: Boyan zhong
+#className: userManager
+#packageName: static
+#description: 
+####################################################
 # Five kinds of operations, identified by OpID, default as api_info = 1
 class OpID(enum.Enum):
    api_info = 1

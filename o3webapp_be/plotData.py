@@ -4,6 +4,17 @@ from bokeh.core.property.color import Color
 import copy
 from flask import jsonify
 
+####################################################
+# version: V1.0
+# author: Boyan zhong,Danni Bao
+# className: PlotData
+# packageName: static
+# description: PlotData: --ptype
+#                        --output
+#                        --varData
+#                        --modelData
+####################################################
+
 # three plot types, default as tco3_zm = 1
 class PlotType(enum.Enum):
    tco3_zm = 1
@@ -18,13 +29,6 @@ class OutputFormat(enum.Enum):
    png = 4
    svg = 5
 
-####################################################
-# PlotData :
-# --ptype
-# --output
-# --varData
-# --modelData
-####################################################
 class PlotData:
     def __init__(self, ptype, varData, output):
         self.ptype = PlotType[ptype]

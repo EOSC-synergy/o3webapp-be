@@ -17,6 +17,8 @@ venv/*
 *.csv
 *.html
 
+egi_auth.txt
+
 # Branch
 .gitlab 
 
