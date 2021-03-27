@@ -1,7 +1,7 @@
 import json
 import enum
 
-from plotData import PlotData
+from o3webapp_be.plotData import PlotData
 ####################################################
 #version: V1.0
 #author: Boyan zhong

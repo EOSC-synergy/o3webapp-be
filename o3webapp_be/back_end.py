@@ -2,14 +2,14 @@ from flask import Flask, request, url_for, redirect, jsonify, json,send_from_dir
 from flask_cors import CORS
 from flask_restful import reqparse, abort, Api, Resource
 from werkzeug.exceptions import HTTPException
-from userManager import UserManager, OpID
-from backendException import LoginException
 from pathlib import Path
 import os
 import io
 import base64
 from PIL import Image
 
+from o3webapp_be.userManager import UserManager, OpID
+from o3webapp_be.backendException import LoginException
 ####################################################
 #version: V1.0
 #author: Boyan zhong
