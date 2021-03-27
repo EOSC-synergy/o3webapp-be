@@ -2,6 +2,7 @@ import enum
 from flask import url_for,redirect,request, jsonify
 import requests
 import os
+from pathlib import Path
 
 from o3webapp_be.controller import APIInfoController,PlotypesController,ModelsInfoController,TypeModelsVarsController,PlotController
 
@@ -47,17 +48,17 @@ class UserManager:
     def handle_process_on_loginpage(self, auth_code):
 
         if self.userRequest.method == 'POST':
-            egi_token_url = os.getenv('EGI_TOKEN_URL')
+            app_url = Path(os.getenv('O3WEB_URL'))
+            egi_url = Path(os.getenv('EGI_URL'))
             headers = {'Content-Type': 'application/x-www-form-urlencoded'}
             data = {'grant_type':'authorization_code', 'code': auth_code,
-                    'redirect_uri': 'http://localhost:3000/redirect_url'}##o3web.test.fedcloud.eu
+                    'redirect_uri': app_url/'redirect_url'}
             auth = ('o3webapp', os.getenv('SECRET'))
-            egi_auth = requests.post(egi_token_url, headers=headers, data=data, auth=auth).json()
+            egi_auth = requests.post(egi_url/'token', headers=headers, data=data, auth=auth).json()
             access_token = egi_auth['access_token']
 
-            userinfo_url= os.getenv('EGI_USERINFO_URL')
             headers = {"Authorization": "Bearer " + access_token}
-            egi_userinfo = requests.get(userinfo_url, headers=headers).json()
+            egi_userinfo = requests.get(egi_url/'userinfo', headers=headers).json()
             username = egi_userinfo['name']
             sub = egi_userinfo['sub']
             return jsonify({'sub': sub, 'name': username})
