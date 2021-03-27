@@ -7,14 +7,26 @@ from o3webapp_be.backend.back_end import app
 class TestApi(unittest.TestCase):
 
     def setUp(self):
-        self.headers = {'Content-Type': 'application/json',
-                        'Accept': 'application/json'}
+        self.headers = {'Accept': 'application/json'}
 
-    def test_model_list_get_returns_302(self):
+    def test_plot_returns_list(self):
+        """Test that /plot returns correct list of possible plots
+        """
+        with app.test_client() as client:
+           response = client.post('/plot', 
+                                  headers=self.headers).json
+           expected_json = ["tco3_zm","vmro3_zm","tco3_return"]
+           self.assertEqual(response, expected_json)
+
+    def test_model_list_get_returns_200(self):
         """Test if GET method of the endpoint 
-           /model_list/<ptype> returns 302 (look at another URL)
+           /model_list/<ptype> returns 200 (success)
         """
         with app.test_client() as client:
             response = client.get('/model_list/tco3_zm')
-            # 302 = Tells the client to look at (browse to) another URL
-            assert response._status_code == 302
+            assert response._status_code == 200
+
+
+if __name__ == '__main__':
+    unittest.main()
+
