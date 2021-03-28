@@ -57,11 +57,11 @@ class ModelsInfoException(Exception):
         pass
 
 class ModelsInfoRequestorException(ModelsInfoException):
-    def __init__(self, wrongPType):
-        self.wrongPType = wrongPType
+    def __init__(self, jsonRequest):
+        pass
     
     def __str__(self):
-        return "Wrong pType: " + self.wrongPType
+        pass
 
 ##################################
 # Exception for OpID.t_M_V
@@ -74,11 +74,11 @@ class TypeModelsVarsException(Exception):
         pass
 
 class TypeModelsVarsParserException(TypeModelsVarsException):
-    def __init__(self, jsonRequest):
-        pass
-    
+    def __init__(self, wrongPType):
+        self.wrongPType = wrongPType
+
     def __str__(self):
-        pass
+        return "Wrong pType: " + self.wrongPType
 
 class TypeModelsVarsRequestorException(TypeModelsVarsException):
     def __init__(self, jsonRequest):

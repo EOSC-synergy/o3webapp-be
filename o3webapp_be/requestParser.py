@@ -2,7 +2,7 @@ import json
 import enum
 
 from o3webapp_be.plotData import PlotData, PlotType
-from o3webapp_be.backendException import ModelsInfoRequestorException
+from o3webapp_be.backendException import TypeModelsVarsParserException
 ####################################################
 #version: V1.0
 #author: Boyan zhong
@@ -31,7 +31,7 @@ class TypeModelsVarsParser(InfoParser):
         if ptype in PlotType.__members__:
             return ptype
         else:
-            raise ModelsInfoRequestorException(ptype)
+            raise TypeModelsVarsParserException(ptype)
     
     # parse response file from o3api 
     # extract the needed vars from a complete json file in to a json file for a selected plot type 
