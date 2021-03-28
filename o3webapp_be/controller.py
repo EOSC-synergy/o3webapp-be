@@ -1,11 +1,18 @@
 from flask import request,jsonify
 from abc import ABC, abstractmethod
 
-from .plotData import PlotData
-from .requestor import APIInfoRequestor,PlotypesRequestor,ModelsInfoRequestor,TypeModelsVarsRequestor,Tco3ZmRequestor,Tco3ReturnRequestor,Vmro3ZmRequestor,InfoUpdateRequestor,PlotDataRequestor
-from .requestParser import TypeModelsVarsParser,Tco3ZmParser,Tco3ReturnParser,Vmro3ZmParser, PlotParser
-from .plotter import Tco3ZmPlotter, Vmro3ZmPlotter, Tco3ReturnPlotter
+from o3webapp_be.plotData import PlotData
+from o3webapp_be.requestor import APIInfoRequestor,PlotypesRequestor,ModelsInfoRequestor,TypeModelsVarsRequestor,Tco3ZmRequestor,Tco3ReturnRequestor,Vmro3ZmRequestor,InfoUpdateRequestor,PlotDataRequestor
+from o3webapp_be.requestParser import TypeModelsVarsParser,Tco3ZmParser,Tco3ReturnParser,Vmro3ZmParser, PlotParser
+from o3webapp_be.plotter import Tco3ZmPlotter, Vmro3ZmPlotter, Tco3ReturnPlotter
 
+####################################################
+#version: V1.0
+#author: Boyan,zhong
+#className: Controller
+#packageName: static
+#description:
+####################################################
 # Controller, scheduling the process for handling the user-request. 
 # Specific controller handles the request-object with the corresponding operation ID.
 # 1. parsing the request-object offered by user-manager into plot-data.                             (plot-process)
