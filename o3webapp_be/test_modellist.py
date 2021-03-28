@@ -64,7 +64,7 @@ class ModelListTestCase(unittest.TestCase):
         self.assertEqual(self.expected_json, resp.json)
 
     def test_tmv_status_code(self):
-        resp = self.client.post('/model_list/tco3zm', json=self.json, headers=self.headers)
+        resp = self.client.post('/model_list/tco3zm', headers=self.headers, json=self.json)
 
         self.assertEqual(resp.status_code, 200)
 
