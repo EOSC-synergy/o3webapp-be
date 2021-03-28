@@ -160,23 +160,23 @@ class ZmPlotter(Plotter):
         p.add_tools(hoverTool)
 
         # TODO add color , hide and delete button
-        ###################  mmt block #####################
-        #+----------------+--------------+----------------+#
-        #| mmtButtonGroup |  mmtBoxNum   | mmtBoxActivity |#
-        #+----------------+--------------+----------------+#
-        ####################################################
-        #+----------------+----------------+               #
-        #|+--boxHeader---+|+--boxHeader---+|               #
-        #|| boxTitle     ||| boxTitle     ||               #
-        #|| mmtLegendNum ||| mmtLegendNum ||               #
-        #|| boxDelete    ||| boxDelete    ||               #
-        #|+--------------+|+--------------+|               #
-        #|  legend_1      |  legend_1      |               #
-        #|  legend_2      |  legend_2      |               #
-        #|  ...           |  ...           |               #
-        #+----------------+----------------+               #
-        ####################################################
-        # ROW_2 :: mmt block                                ##################################
+        ###################  mmt block ###################################
+        #+----------------+--------------+----------------+-------------+#
+        #| mmtButtonGroup |  mmtBoxNum   | mmtBoxActivity |  refButton  |#
+        #+----------------+--------------+----------------+-------------+#
+        ##################################################################
+        #+----------------+----------------+                             #
+        #|+--boxHeader---+|+--boxHeader---+|                             #
+        #|| boxTitle     ||| boxTitle     ||                             #
+        #|| mmtLegendNum ||| mmtLegendNum ||                             #
+        #|| boxDelete    ||| boxDelete    ||                             #
+        #|+--------------+|+--------------+|                             #
+        #|  legend_1      |  legend_1      |                             #
+        #|  legend_2      |  legend_2      |                             #
+        #|  ...           |  ...           |                             #
+        #+----------------+----------------+                             #
+        ##################################################################
+        # ROW_2 :: mmt block                                           ########
         maxBoxNum = 5
         maxLegendNum = 7
         # mmt block header
@@ -187,6 +187,8 @@ class ZmPlotter(Plotter):
             labels=boxNum, active=0, tags=[0], visible=False)
         mmtBoxActivity = RadioButtonGroup(
             labels=boxActivity, active=0, visible=False)
+        yearRef = Button(
+                label="1980 reference", tags=[], css_classes = ["year_reference"], visible=True)
         mmtLegendBlockHead = row(mmtButtonGroup, mmtBoxNum, mmtBoxActivity)
         # mmt box array
         boxHeaderW = 100
@@ -776,7 +778,7 @@ class ZmPlotter(Plotter):
                     mmtPlot.change.emit();
                 }
                 """)
-        slider = Slider(start=1, end=maxLen, value=1, step=1, title="smooth factor")
+        slider = Slider(start=1, end=maxLen, value=1, step=1, title="smooth factor", css_classes = ["boxcar_factor"])
         slider.js_on_change('value', callback)
         return column(slider, plot)
 
