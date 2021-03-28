@@ -2,15 +2,8 @@ import requests
 import json
 import os
 
-from o3webapp_be.plotData import PlotData
+from .plotData import PlotData
 
-####################################################
-# version: V1.0
-# author: Boyan zhong,Danni Bao
-# className: PlotData
-# packageName: static
-# description: 
-####################################################
 # Requestor, querying the info or data from O3as-API.
 class Requestor:
     def __init__(self):

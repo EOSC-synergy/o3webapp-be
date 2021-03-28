@@ -1,15 +1,9 @@
 import json
 import enum
 
-from o3webapp_be.plotData import PlotData
-####################################################
-#version: V1.0
-#author: Boyan zhong
-#className: requestParser
-#packageName: static
-#description: 
-####################################################
-#Parser, parsing the request-object into info or plotData.
+from .plotData import PlotData
+
+# Parser, parsing the request-object into info or plotData.
 class Parser:
     pass
     
