@@ -74,7 +74,7 @@ def handle_request_for_typemv(pType):
         r = userManager.handle_process_on_plotpage(OpID.t_M_V)
     except Exception as e:
         print(e)
-        return "json file with exception info"
+        return jsonify(e.__str__())
     else:
         return r
 

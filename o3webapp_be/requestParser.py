@@ -1,7 +1,8 @@
 import json
 import enum
 
-from o3webapp_be.plotData import PlotData
+from o3webapp_be.plotData import PlotData, PlotType
+from o3webapp_be.backendException import ModelsInfoRequestorException
 ####################################################
 #version: V1.0
 #author: Boyan zhong
@@ -26,7 +27,11 @@ class InfoUpateParser(InfoParser):
 class TypeModelsVarsParser(InfoParser):
 
     def parse_user_request(self, jsonRequest):
-        return jsonRequest['pType']
+        ptype = jsonRequest['pType']
+        if ptype in PlotType.__members__:
+            return ptype
+        else:
+            raise ModelsInfoRequestorException(ptype)
     
     # parse response file from o3api 
     # extract the needed vars from a complete json file in to a json file for a selected plot type 
