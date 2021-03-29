@@ -25,18 +25,15 @@ class InfoUpateParser(InfoParser):
     pass
 
 class ModelInfoParser(InfoParser):
-
-    def parse_user_request(self, jsonRequest):
-        return jsonRequest['modelName']
+    pass
 
 class TypeModelsVarsParser(InfoParser):
 
-    def parse_user_request(self, jsonRequest):
-        ptype = jsonRequest['pType']
-        if ptype in PlotType.__members__:
-            return ptype
+    def parse_user_request(self, param):
+        if param in PlotType.__members__:
+            return param
         else:
-            raise TypeModelsVarsParserException(ptype)
+            raise TypeModelsVarsParserException(param)
     
     # parse response file from o3api 
     # extract the needed vars from a complete json file in to a json file for a selected plot type 

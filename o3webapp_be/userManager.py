@@ -4,7 +4,7 @@ import requests
 import os
 from pathlib import Path
 
-from o3webapp_be.controller import APIInfoController,PlotypesController,ModelsInfoController,TypeModelsVarsController,PlotController
+from o3webapp_be.controller import APIInfoController,PlotypesController,ModelsInfoController,ModelInfoController, TypeModelsVarsController,PlotController
 from o3webapp_be.backendException import LoginException
 
 
@@ -20,8 +20,9 @@ class OpID(enum.Enum):
    api_info = 1
    p_type = 2
    models_info = 3
-   t_M_V = 4
-   plot = 5
+   model_info = 4
+   t_M_V = 5
+   plot = 6
 
 # User Manager, which handles all kinds of user requests :
 # 1. Arranging the user info and user status, 
@@ -32,10 +33,11 @@ class OpID(enum.Enum):
 
 class UserManager:
 
-    opDict = {OpID.api_info: (lambda jsonRequest: APIInfoController(jsonRequest)),
-              OpID.p_type: (lambda jsonRequest: PlotypesController(jsonRequest)),
-              OpID.models_info: (lambda jsonRequest: ModelsInfoController(jsonRequest)),
-              OpID.t_M_V: (lambda jsonRequest:TypeModelsVarsController(jsonRequest)),
+    opDict = {OpID.api_info: (lambda param: APIInfoController(param)),
+              OpID.p_type: (lambda param: PlotypesController(param)),
+              OpID.models_info: (lambda param: ModelsInfoController(param)),
+              OpID.model_info: (lambda param: ModelInfoController(param)),
+              OpID.t_M_V: (lambda param:TypeModelsVarsController(param)),
               OpID.plot: (lambda jsonRequest:PlotController.plotControllerDict[jsonRequest['pType']](jsonRequest))}
 
     #TODO add opID for download and mean_median_trend etc.
@@ -49,6 +51,8 @@ class UserManager:
     def handle_process_on_loginpage(self, auth_code):
 
         if self.userRequest.method == 'GET':
+            if len(auth_code)==0:
+                raise LoginException(1)
             app_url = os.getenv('O3WEB_URL')
             egi_url = os.getenv('EGI_URL')
             headers = {'Content-Type': 'application/x-www-form-urlencoded'}
@@ -64,17 +68,18 @@ class UserManager:
             sub = egi_userinfo['sub']
             return jsonify({'sub': sub, 'name': username})
         else:
-            raise LoginException(1)
+            return jsonify({'status': 'not a GET method request', 'name':"login"})
         
     # 1. Checking the api_info
     # 2. Updating the list of plot types
-    # 3. Updating the info of a specific model
-    # 4. Updating the available model list and the required variables of the chosen plot type
-    def handle_process_on_modelpage(self, opID):
+    # 3. Updating the all available models 
+    # 4. Updating the info of a specific model
+    # 5. Updating the available model list and the required variables of the chosen plot type
+    def handle_process_on_modelpage(self, opID, param):
         if self.userRequest.method == 'GET':
-            return UserManager.opDict[opID](self.jsonRequest).handle_process()
+            return UserManager.opDict[opID](param).handle_process()
         else:
-            return jsonify({'status': 'error', 'name':opID.value})
+            return jsonify({'status': 'not a GET method request', 'name':opID.value})
 
     # 1. Plotting the figure according to the chosen plot type and variables for the chosen models
     # 2. Downloading the plotted figure in the given format
@@ -82,4 +87,4 @@ class UserManager:
         if self.userRequest.method == 'POST':
             return UserManager.opDict[opID](self.jsonRequest).handle_process()
         else:
-            return jsonify({'status': 'error', 'name':opID.value})
+            return jsonify({'status': 'not a POST method request', 'name':opID.value})
