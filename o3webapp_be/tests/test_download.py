@@ -2,7 +2,7 @@ import unittest
 
 import coverage
 
-from o3webapp_be.backend.back_end import app
+from o3webapp_be.back_end import app
 
 class DownloadTestCase(unittest.TestCase):
 

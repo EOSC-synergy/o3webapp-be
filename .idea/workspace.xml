@@ -3,6 +3,10 @@
   <component name="ChangeListManager">
     <list default="true" id="4a0538dd-8f03-459e-a887-c61a07d387fd" name="Default Changelist" comment="rename 'test' folder name to 'tests'">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/o3webapp_be/tests/test_download.py" beforeDir="false" afterPath="$PROJECT_DIR$/o3webapp_be/tests/test_download.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/o3webapp_be/tests/test_modellist.py" beforeDir="false" afterPath="$PROJECT_DIR$/o3webapp_be/tests/test_modellist.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/o3webapp_be/tests/test_plot.py" beforeDir="false" afterPath="$PROJECT_DIR$/o3webapp_be/tests/test_plot.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/o3webapp_be/tests/test_ptype.py" beforeDir="false" afterPath="$PROJECT_DIR$/o3webapp_be/tests/test_ptype.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -33,6 +37,11 @@
     </option>
   </component>
   <component name="Git.Settings">
+    <option name="RECENT_BRANCH_BY_REPOSITORY">
+      <map>
+        <entry key="$PROJECT_DIR$" value="test" />
+      </map>
+    </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
   <component name="GitSEFilterConfiguration">
@@ -143,11 +152,11 @@
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="Python tests.Unittests for test_modellist.ModelListTestCase.test_tmv_status_code" />
-        <item itemvalue="Python tests.Unittests for test_ptype.PtypeTestCase.test_ptype_get_request" />
-        <item itemvalue="Python tests.Unittests for test_modellist.ModelListTestCase.test_something" />
         <item itemvalue="Python tests.Unittests for test_ptype.PtypeTestCase.test_tmv" />
+        <item itemvalue="Python tests.Unittests for test_ptype.PtypeTestCase.test_ptype_get_request" />
         <item itemvalue="Python tests.Unittests for test_ptype.PtypeTestCase.test_app_is_testing" />
+        <item itemvalue="Python tests.Unittests for test_modellist.ModelListTestCase.test_tmv_status_code" />
+        <item itemvalue="Python tests.Unittests for test_modellist.ModelListTestCase.test_something" />
       </list>
     </recent_temporary>
   </component>
