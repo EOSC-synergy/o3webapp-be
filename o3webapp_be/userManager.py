@@ -47,18 +47,18 @@ class UserManager:
     # 1. Logging in as authenticated user
     def handle_process_on_loginpage(self, auth_code):
 
-        if self.userRequest.method == 'POST':
-            app_url = Path(os.getenv('O3WEB_URL'))
-            egi_url = Path(os.getenv('EGI_URL'))
+        if self.userRequest.method == 'GET':
+            app_url = os.getenv('O3WEB_URL')
+            egi_url = os.getenv('EGI_URL')
             headers = {'Content-Type': 'application/x-www-form-urlencoded'}
             data = {'grant_type':'authorization_code', 'code': auth_code,
-                    'redirect_uri': app_url/'redirect_url'}
+                    'redirect_uri': app_url+'redirect_url'}
             auth = ('o3webapp', os.getenv('SECRET'))
-            egi_auth = requests.post(egi_url/'token', headers=headers, data=data, auth=auth).json()
+            egi_auth = requests.post(egi_url+'token', headers=headers, data=data, auth=auth).json()
             access_token = egi_auth['access_token']
 
             headers = {"Authorization": "Bearer " + access_token}
-            egi_userinfo = requests.get(egi_url/'userinfo', headers=headers).json()
+            egi_userinfo = requests.get(egi_url+'userinfo', headers=headers).json()
             username = egi_userinfo['name']
             sub = egi_userinfo['sub']
             return jsonify({'sub': sub, 'name': username})
