@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="4a0538dd-8f03-459e-a887-c61a07d387fd" name="Default Changelist" comment="test case for 'plot/modellist/&lt;ptype&gt;'" />
+    <list default="true" id="4a0538dd-8f03-459e-a887-c61a07d387fd" name="Default Changelist" comment="rename 'test' folder name to 'tests'">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -185,7 +187,14 @@
       <option name="project" value="LOCAL" />
       <updated>1616959391858</updated>
     </task>
-    <option name="localTasksCounter" value="4" />
+    <task id="LOCAL-00004" summary="rename 'test' folder name to 'tests'">
+      <created>1617017690646</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1617017690646</updated>
+    </task>
+    <option name="localTasksCounter" value="5" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -196,7 +205,39 @@
       <map>
         <entry key="MAIN">
           <value>
-            <State />
+            <State>
+              <option name="FILTERS">
+                <map>
+                  <entry key="branch">
+                    <value>
+                      <list>
+                        <option value="test" />
+                      </list>
+                    </value>
+                  </entry>
+                </map>
+              </option>
+            </State>
+          </value>
+        </entry>
+      </map>
+    </option>
+    <option name="RECENT_FILTERS">
+      <map>
+        <entry key="Branch">
+          <value>
+            <list>
+              <RecentGroup>
+                <option name="FILTER_VALUES">
+                  <option value="test" />
+                </option>
+              </RecentGroup>
+              <RecentGroup>
+                <option name="FILTER_VALUES">
+                  <option value="backend_local" />
+                </option>
+              </RecentGroup>
+            </list>
           </value>
         </entry>
       </map>
@@ -206,7 +247,8 @@
   <component name="VcsManagerConfiguration">
     <MESSAGE value="update requirements.txt with coverage package" />
     <MESSAGE value="test case for 'plot/modellist/&lt;ptype&gt;'" />
-    <option name="LAST_COMMIT_MESSAGE" value="test case for 'plot/modellist/&lt;ptype&gt;'" />
+    <MESSAGE value="rename 'test' folder name to 'tests'" />
+    <option name="LAST_COMMIT_MESSAGE" value="rename 'test' folder name to 'tests'" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
