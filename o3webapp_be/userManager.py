@@ -5,6 +5,7 @@ import os
 from pathlib import Path
 
 from o3webapp_be.controller import APIInfoController,PlotypesController,ModelsInfoController,TypeModelsVarsController,PlotController
+from o3webapp_be.backendException import LoginException
 
 
 ####################################################
@@ -63,7 +64,7 @@ class UserManager:
             sub = egi_userinfo['sub']
             return jsonify({'sub': sub, 'name': username})
         else:
-            return jsonify({'sub': '', 'name': ''})
+            raise LoginException(1)
         
     # 1. Checking the api_info
     # 2. Updating the list of plot types

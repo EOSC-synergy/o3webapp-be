@@ -9,7 +9,7 @@ import base64
 from PIL import Image
 
 from o3webapp_be.userManager import UserManager, OpID
-from o3webapp_be.backendException import LoginException
+from o3webapp_be.backendException import LoginException, TypeModelsVarsParserException
 ####################################################
 #version: V1.0
 #author: Boyan zhong
@@ -38,7 +38,7 @@ def handle_request_for_ptype():
         r = userManager.handle_process_on_plotpage(OpID.p_type)
     except Exception as e:
         print(e)
-        return ""
+        return jsonify(e.__str__()), 404
     else:
         return r
 
@@ -50,7 +50,7 @@ def handle_request_for_plot(pType):
         r = userManager.handle_process_on_plotpage(OpID.plot)
     except Exception as e:
         print(e)
-        return "file"
+        return jsonify(e.__str__()), 404
     else:
         return r
 
@@ -62,7 +62,7 @@ def handle_request_for_download(format):
         r = userManager.handle_process_on_plotpage(OpID.plot)
     except Exception as e:
         print(e)
-        return "json file with exception info"
+        return jsonify(e.__str__()), 404
     else:
         return r
 
@@ -72,9 +72,11 @@ def handle_request_for_typemv(pType):
     try:
         userManager = UserManager(request)
         r = userManager.handle_process_on_plotpage(OpID.t_M_V)
+    except TypeModelsVarsParserException as e:
+        return e.args, 401
     except Exception as e:
         print(e)
-        return jsonify(e.__str__())
+        return jsonify(e.__str__()), 404
     else:
         return r
 
@@ -87,10 +89,10 @@ def login(auth_code):
         userManager = UserManager(request)
         r = userManager.handle_process_on_loginpage(auth_code)
     except LoginException as e:
-        return e.args
+        return e.args, 401
     except Exception as e:
         print(e)
-        return ""
+        return jsonify(e.__str__()), 404
     else:
         return r
 
