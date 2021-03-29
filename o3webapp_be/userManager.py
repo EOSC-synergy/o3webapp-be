@@ -70,7 +70,14 @@ class UserManager:
     # 2. Updating the list of plot types
     # 3. Updating the info of a specific model
     # 4. Updating the available model list and the required variables of the chosen plot type
-    # 5. Plotting the figure according to the chosen plot type and variables for the chosen models
+    def handle_process_on_modelpage(self, opID):
+        if self.userRequest.method == 'GET':
+            return UserManager.opDict[opID](self.jsonRequest).handle_process()
+        else:
+            return jsonify({'status': 'error', 'name':opID.value})
+
+    # 1. Plotting the figure according to the chosen plot type and variables for the chosen models
+    # 2. Downloading the plotted figure in the given format
     def handle_process_on_plotpage(self, opID):
         if self.userRequest.method == 'POST':
             return UserManager.opDict[opID](self.jsonRequest).handle_process()

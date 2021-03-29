@@ -116,7 +116,7 @@ class Plotter(ABC):
             #return Response(pdf, mimetype="application/pdf",
             #                headers={"Content-Disposition": "attachment;filename={}".format("plot.pdf")})
             #return send_from_directory(folder_path+"pdf/", "plot.pdf", as_attachment = True, conditional=True)
-            return send_file(folder_path+"pdf/plot.png", attachment_filename="plot.png", conditional=True)
+            return send_file(folder_path+"pdf/plot.pdf", attachment_filename="plot.pdf", conditional=True)
         else:
             data = json.dumps(json_item(layout))
             return Response(data, mimetype='application/json')
