@@ -820,17 +820,17 @@ class ZmPlotter(Plotter):
         mmtLegendBoxArr = []
         for boxIndex in range(maxBoxNum):
             boxTitle = Button(
-                label="", tags=[-1, -1], css_classes = ["mmt_" + str(boxIndex) + "_title"], width=0, height=0, visible=False)
+                label="", tags=[-1, -1], css_classes = ["mmt_title"], width=0, height=0, visible=False)
             mmtLegendNum = RadioButtonGroup(
                 labels=legendNum, active=0, visible=False, disabled=True)
             boxDel = Button(
-                label="x", tags=[-1], css_classes = ["mmt_" + str(boxIndex) + "_del"], width=0, height=0, visible=False)
+                label="x", tags=[-1], css_classes = ["mmt_del"], width=0, height=0, visible=False)
             boxHeaderArr = [boxTitle, mmtLegendNum, boxDel]
             boxHeader = row(boxHeaderArr)
             legendArr = [boxHeader]
             for legendIndex in range(maxLegendNum):
                 legendArr.append(
-                    Button(label="", tags=[-1, legendIndex + 1], css_classes = ["mmt_" + str(boxIndex) + "_" + str(legendIndex)], width=0, height=0, visible=False))
+                    Button(label="", tags=[-1, legendIndex + 1], css_classes = ["mmt"], width=0, height=0, visible=False))
             mmtLegendBoxArr.append(column(legendArr))
         return row(mmtLegendBoxArr)
 
