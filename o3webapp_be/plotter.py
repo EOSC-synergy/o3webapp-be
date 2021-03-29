@@ -1,4 +1,4 @@
-from flask import url_for, redirect, Response, send_from_directory
+from flask import url_for, redirect, Response, send_from_directory, send_file
 import json
 from math import pi
 import numpy as np
@@ -70,8 +70,7 @@ class Plotter(ABC):
 
     # TODO implemented in Responder, who takes care of the format of the output.
     def do_export(self, layout, plot):
-        folder_path = Path(os.getenv('PLOT_FOLDER'))
-        print(self.output)
+        folder_path = os.getenv('PLOT_FOLDER')
         #options = webdriver.ChromeOptions()
         #options.add_experimental_option('excludeSwitches', ['enable-logging'])
         if self.output == OutputFormat["csv"]:
@@ -110,13 +109,14 @@ class Plotter(ABC):
         elif self.output == OutputFormat["pdf"]:
             plot.background_fill_color = None
             plot.border_fill_color = None
-            png = export_png(plot, filename=folder_path/"pdf/plot.png")
-            image = Image.open(folder_path/"pdf/plot.png")
+            png = export_png(plot, filename=folder_path+"pdf/plot.png")
+            image = Image.open(folder_path+"pdf/plot.png")
             pdf = image.convert('RGB')
-            pdf.save(folder_path/'pdf/plot.pdf')
-            #file = Response(pdf, mimetype="application/pdf",
+            pdf.save(folder_path+'pdf/plot.pdf')
+            #return Response(pdf, mimetype="application/pdf",
             #                headers={"Content-Disposition": "attachment;filename={}".format("plot.pdf")})
-            return send_from_directory(folder_path/"pdf/", "plot.pdf", as_attachment = True)
+            #return send_from_directory(folder_path+"pdf/", "plot.pdf", as_attachment = True, conditional=True)
+            return send_file(folder_path+"pdf/plot.pdf", attachment_filename="plot.pdf", conditional=True)
         else:
             data = json.dumps(json_item(layout))
             return Response(data, mimetype='application/json')
