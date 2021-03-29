@@ -2,8 +2,9 @@ from flask import request,jsonify
 from abc import ABC, abstractmethod
 
 from o3webapp_be.plotData import PlotData
-from o3webapp_be.requestor import APIInfoRequestor,PlotypesRequestor,ModelsInfoRequestor,TypeModelsVarsRequestor,Tco3ZmRequestor,Tco3ReturnRequestor,Vmro3ZmRequestor,InfoUpdateRequestor,PlotDataRequestor
-from o3webapp_be.requestParser import TypeModelsVarsParser,Tco3ZmParser,Tco3ReturnParser,Vmro3ZmParser, PlotParser
+from o3webapp_be.requestor import APIInfoRequestor,PlotypesRequestor,ModelsInfoRequestor,ModelInfoRequestor, TypeModelsVarsRequestor
+from o3webapp_be.requestor import Tco3ZmRequestor,Tco3ReturnRequestor,Vmro3ZmRequestor,InfoUpdateRequestor,PlotDataRequestor
+from o3webapp_be.requestParser import ModelInfoParser,TypeModelsVarsParser,Tco3ZmParser,Tco3ReturnParser,Vmro3ZmParser, PlotParser
 from o3webapp_be.plotter import Tco3ZmPlotter, Vmro3ZmPlotter, Tco3ReturnPlotter
 
 ####################################################
@@ -52,6 +53,13 @@ class ModelsInfoController(InfoUpateController):
     def __init__(self, jsonRequest):
         super().__init__(jsonRequest)
         self.infoRequestor = ModelsInfoRequestor()
+
+class ModelInfoController(InfoUpateController):
+    def __init__(self, jsonRequest):
+        super().__init__(jsonRequest)
+        modelInfoParser = ModelInfoParser()
+        modelName = modelInfoParser.parse_user_request(jsonRequest)
+        self.infoRequestor = ModelInfoRequestor(modelName)
 
 class PlotypesController(InfoUpateController):
     def __init__(self, jsonRequest):

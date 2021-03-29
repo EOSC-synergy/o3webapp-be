@@ -37,6 +37,11 @@ class ModelsInfoRequestor(InfoUpdateRequestor):
         super().__init__()
         self.url += 'models'
 
+class ModelInfoRequestor(InfoUpdateRequestor):
+    def __init__(self, modelName):
+        super().__init__()
+        self.url += 'models/' + modelName
+
 class PlotypesRequestor(InfoUpdateRequestor):
     def __init__(self):
         super().__init__()

@@ -24,6 +24,11 @@ class InfoParser(Parser):
 class InfoUpateParser(InfoParser):
     pass
 
+class ModelInfoParser(InfoParser):
+
+    def parse_user_request(self, jsonRequest):
+        return jsonRequest['modelName']
+
 class TypeModelsVarsParser(InfoParser):
 
     def parse_user_request(self, jsonRequest):

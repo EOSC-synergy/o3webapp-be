@@ -80,7 +80,19 @@ def handle_request_for_typemv(pType):
     else:
         return r
 
-#/model_info/<model> -> returns the info for the specified model
+#/models/<model> -> returns the info for the specified model
+@app.route('/models/<model>', methods=['GET', 'POST'])
+def handle_request_for_model(model):
+    try:
+        userManager = UserManager(request)
+        r = userManager.handle_process_on_plotpage(OpID.t_M_V)
+    except TypeModelsVarsParserException as e:
+        return e.args, 401
+    except Exception as e:
+        print(e)
+        return jsonify(e.__str__()), 404
+    else:
+        return r
 
 #/login/<auth_code> -> returns the token required by auth_code from EGI
 @app.route('/login/<auth_code>', methods=['GET','POST'])
