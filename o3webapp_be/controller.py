@@ -2,7 +2,8 @@ from flask import request,jsonify
 from abc import ABC, abstractmethod
 
 from o3webapp_be.plotData import PlotData
-from o3webapp_be.requestor import APIInfoRequestor,PlotypesRequestor,ModelsInfoRequestor,TypeModelsVarsRequestor,Tco3ZmRequestor,Tco3ReturnRequestor,Vmro3ZmRequestor,InfoUpdateRequestor,PlotDataRequestor
+from o3webapp_be.requestor import APIInfoRequestor,PlotypesRequestor,ModelsInfoRequestor,ModelInfoRequestor, TypeModelsVarsRequestor
+from o3webapp_be.requestor import Tco3ZmRequestor,Tco3ReturnRequestor,Vmro3ZmRequestor,InfoUpdateRequestor,PlotDataRequestor
 from o3webapp_be.requestParser import TypeModelsVarsParser,Tco3ZmParser,Tco3ReturnParser,Vmro3ZmParser, PlotParser
 from o3webapp_be.plotter import Tco3ZmPlotter, Vmro3ZmPlotter, Tco3ReturnPlotter
 
@@ -36,38 +37,44 @@ class RemoteController(Controller):
     pass
 
 class InfoUpateController(RemoteController):
-    def __init__(self, jsonRequest):
-        super().__init__(jsonRequest)
+    def __init__(self, param):
+        super().__init__(param)
         self.infoRequestor = InfoUpdateRequestor()
     
     def handle_process(self):
         return jsonify(self.infoRequestor.request_info())
 
 class APIInfoController(InfoUpateController):
-    def __init__(self, jsonRequest):
-        super().__init__(jsonRequest)
+    def __init__(self, param):
+        super().__init__(param)
         self.infoRequestor = APIInfoRequestor()
         
+class PlotypesController(InfoUpateController):
+    def __init__(self, param):
+        super().__init__(param)
+        self.infoRequestor = PlotypesRequestor()
+
 class ModelsInfoController(InfoUpateController):
-    def __init__(self, jsonRequest):
-        super().__init__(jsonRequest)
+    def __init__(self, param):
+        super().__init__(param)
         self.infoRequestor = ModelsInfoRequestor()
 
-class PlotypesController(InfoUpateController):
-    def __init__(self, jsonRequest):
-        super().__init__(jsonRequest)
-        self.infoRequestor = PlotypesRequestor()
-        
+class ModelInfoController(InfoUpateController):
+    def __init__(self, param):
+        super().__init__(param)
+        self.infoRequestor = ModelInfoRequestor(param)
+
 class TypeModelsVarsController(RemoteController):
-    def __init__(self, jsonRequest):
-        super().__init__(jsonRequest)
+    def __init__(self, param):
+        super().__init__(param)
+        self.param = param
         self.typeModelsVarsParser = TypeModelsVarsParser()
         self.typeModelsVarsRequestor = TypeModelsVarsRequestor()
 
     # I: <'pType': 'tco3_zm/vmro3_zm/tco3_return'>
     # O: <<'models': []>, <'vars': []>>
     def handle_process(self):
-        typeName = self.typeModelsVarsParser.parse_user_request(self.jsonRequest)
+        typeName = self.typeModelsVarsParser.parse_user_request(self.param)
         modelsJson = self.typeModelsVarsRequestor.request_models(typeName)
         completeJson = self.typeModelsVarsRequestor.request_vars()
         varsJson = self.typeModelsVarsParser.parse_varsjson_file(completeJson, typeName)

@@ -11,7 +11,7 @@ class LoginException(Exception):
     
     def __str__(self):
         if self.eType == 1:
-            return "Wrong Http request methods! It should be a GET request."
+            return "Empty auth_code!"
         else:
             return "Fail to login!"
 
