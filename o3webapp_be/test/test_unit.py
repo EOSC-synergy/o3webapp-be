@@ -19,3 +19,5 @@ class TestPackageMethods(unittest.TestCase):
         """
         self.assertTrue(type(self.FakeTest) is bool)
 
+
+

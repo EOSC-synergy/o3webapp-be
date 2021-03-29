@@ -6,11 +6,14 @@
 # Exception for login
 ##################################
 class LoginException(Exception):
-    def __init__(self, jsonRequest):
-        pass
+    def __init__(self, eType):
+        self.eType = eType
     
     def __str__(self):
-        pass
+        if self.eType == 1:
+            return "Wrong Http request methods! It should be a GET request."
+        else:
+            return "Fail to login!"
 
 ##################################
 # Exception for OpID.api_info
@@ -74,11 +77,11 @@ class TypeModelsVarsException(Exception):
         pass
 
 class TypeModelsVarsParserException(TypeModelsVarsException):
-    def __init__(self, jsonRequest):
-        pass
-    
+    def __init__(self, wrongPType):
+        self.wrongPType = wrongPType
+
     def __str__(self):
-        pass
+        return "Wrong pType: " + self.wrongPType
 
 class TypeModelsVarsRequestorException(TypeModelsVarsException):
     def __init__(self, jsonRequest):

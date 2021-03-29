@@ -2,14 +2,21 @@ from flask import Flask, request, url_for, redirect, jsonify, json,send_from_dir
 from flask_cors import CORS
 from flask_restful import reqparse, abort, Api, Resource
 from werkzeug.exceptions import HTTPException
-from .userManager import UserManager, OpID
-from .backendException import LoginException
 from pathlib import Path
 import os
 import io
 import base64
 from PIL import Image
 
+from o3webapp_be.userManager import UserManager, OpID
+from o3webapp_be.backendException import LoginException, TypeModelsVarsParserException
+####################################################
+#version: V1.0
+#author: Boyan zhong
+#className: back_end
+#packageName: static
+#description: 
+####################################################
 
 # Backend interface, which is responsible for :
 # 1. listening to the user request from frontend,
@@ -31,7 +38,7 @@ def handle_request_for_ptype():
         r = userManager.handle_process_on_plotpage(OpID.p_type)
     except Exception as e:
         print(e)
-        return ""
+        return jsonify(e.__str__()), 404
     else:
         return r
 
@@ -40,22 +47,22 @@ def handle_request_for_ptype():
 def handle_request_for_plot(pType):
     try:
         userManager = UserManager(request)
-        r = userManager.handle_process_on_plotpage(OpID.plot)
+        return userManager.handle_process_on_plotpage(OpID.plot)
     except Exception as e:
         print(e)
-        return "file"
-    else:
-        return r
+        return jsonify(e.__str__()), 404
+    #else:
+    #    return r
 
 #/download/<format> -> download the plot in the given format (CSV, PNG, PDF...)
-@app.route('/download11/<format>', methods=['GET', 'POST'])
+@app.route('/download/<format>', methods=['GET', 'POST'])
 def handle_request_for_download(format):
     try:
         userManager = UserManager(request)
         r = userManager.handle_process_on_plotpage(OpID.plot)
     except Exception as e:
         print(e)
-        return "json file with exception info"
+        return jsonify(e.__str__()), 404
     else:
         return r
 
@@ -65,9 +72,11 @@ def handle_request_for_typemv(pType):
     try:
         userManager = UserManager(request)
         r = userManager.handle_process_on_plotpage(OpID.t_M_V)
+    except TypeModelsVarsParserException as e:
+        return e.args, 401
     except Exception as e:
         print(e)
-        return "json file with exception info"
+        return jsonify(e.__str__()), 404
     else:
         return r
 
@@ -80,10 +89,10 @@ def login(auth_code):
         userManager = UserManager(request)
         r = userManager.handle_process_on_loginpage(auth_code)
     except LoginException as e:
-        return e.args
+        return e.args, 401
     except Exception as e:
         print(e)
-        return ""
+        return jsonify(e.__str__()), 404
     else:
         return r
 
@@ -143,4 +152,8 @@ class Plot(Resource):
         my_encoded_img = base64.encodebytes(img_byte_arr.getvalue()).decode('ascii')
         return my_encoded_img
 
-api.add_resource(Plot, '/download/<format>')
+api.add_resource(Plot, '/download1111/<format>')
+
+
+
+

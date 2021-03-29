@@ -2,10 +2,10 @@ config:
   project_repos:
     o3webapp-be:
       repo: 'https://git.scc.kit.edu/synergy.o3as/o3webapp-be.git'
-      branch: master
+      branch: test
 environment:
   #JPL_DOCKERPUSH: "o3webapp-be"
-  O3AS_WEBAPP_BE_DOCKER_TAG: "latest"
+  O3AS_WEBAPP_BE_DOCKER_TAG: "test"
 
 sqa_criteria:
   qc_style:
