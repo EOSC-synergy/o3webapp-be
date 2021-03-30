@@ -59,12 +59,12 @@ class ModelListTestCase(unittest.TestCase):
         )
 
     def test_modellist_tco3zm(self):
-        resp = self.client.post('/model_list/tco3_zm', headers=self.headers, json=self.json)
+        resp = self.client.get('/model_list/tco3_zm', headers=self.headers, json=self.json)
 
         self.assertEqual(self.expected_json, resp.json)
 
     def test_tmv_status_code(self):
-        resp = self.client.post('/model_list/tco3zm', headers=self.headers, json=self.json)
+        resp = self.client.get('/model_list/tco3_zm', headers=self.headers, json=self.json)
 
         self.assertEqual(resp.status_code, 200)
 

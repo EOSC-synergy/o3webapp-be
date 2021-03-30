@@ -128,41 +128,41 @@ def handle_exception(e):
 ########################################
 # API list:                             
 ########################################
-api = Api(app)
-
-class Plot(Resource):
-    def get(self, format):
-        return 'cant find download information',404
-
-    def post(self, format):
-        try:
-            userManager = UserManager(request)
-            r = userManager.handle_process_on_plotpage(OpID.plot)
-            #print(r)
-            #img = self.get_encoded_img()
-            #response_data = {"image": img}
-        except FileNotFoundError as e:
-            print(e)
-            return "json file with exception info",204
-        except Exception as e:
-            print(e)
-            return "json file with exception info",205
-        else:
-            #return response_data, 200
-            #return jsonify(response_data),200
-            return r,200
-
-    def get_encoded_img(self):
-        folder_path = Path(os.getenv('PLOT_FOLDER'))
-        img_byte_arr = io.BytesIO()
-        img = Image.open(folder_path/"pdf/plot.png", mode='r')
-        #img.save(img_byte_arr, format='PNG')
-        pdf = img.convert('RGB')
-        pdf.save(img_byte_arr, format='PDF')
-        my_encoded_img = base64.encodebytes(img_byte_arr.getvalue()).decode('ascii')
-        return my_encoded_img
-
-api.add_resource(Plot, '/download1/<format>')
+# api = Api(app)
+#
+# class Plot(Resource):
+#     def get(self, format):
+#         return 'cant find download information',404
+#
+#     def post(self, format):
+#         try:
+#             userManager = UserManager(request)
+#             r = userManager.handle_process_on_plotpage(OpID.plot)
+#             #print(r)
+#             img = self.get_encoded_img()
+#             response_data = {"image": img}
+#         except FileNotFoundError as e:
+#             print(e)
+#             return "json file with exception info",204
+#         except Exception as e:
+#             print(e)
+#             return "json file with exception info",205
+#         else:
+#             return response_data, 200
+#             #return jsonify(response_data),200
+#             #return r,200
+#
+#     def get_encoded_img(self):
+#         folder_path = Path(os.getenv('PLOT_FOLDER'))
+#         img_byte_arr = io.BytesIO()
+#         img = Image.open(folder_path/"pdf/plot.png", mode='r')
+#         #img.save(img_byte_arr, format='PNG')
+#         pdf = img.convert('RGB')
+#         pdf.save(img_byte_arr, format='PDF')
+#         my_encoded_img = base64.encodebytes(img_byte_arr.getvalue()).decode('ascii')
+#         return my_encoded_img
+#
+# api.add_resource(Plot, '/download1111/<format>')
 
 
 
