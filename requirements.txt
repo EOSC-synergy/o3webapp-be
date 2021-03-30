@@ -15,6 +15,7 @@ pampy
 pandas
 Pillow
 pyparsing
+pyPDF2
 python-dateutil
 pytz
 PyYAML
