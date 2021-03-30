@@ -81,7 +81,7 @@ class Plotter(ABC):
             #        writer.writerow(model)
 
             df = pd.DataFrame(self.build_models_dict())
-            df.to_csv(folder_path/'csv/plot.csv', encoding='utf-8', index=False)
+            df.to_csv(folder_path+'csv/plot.csv', encoding='utf-8', index=False)
 
             #df = pd.DataFrame(self.build_models_dict())
             #dfbuffer = StringIO()
@@ -90,7 +90,9 @@ class Plotter(ABC):
             #data = dfbuffer.getvalue()
             #return Response(data, mimetype="text/csv",
             #                headers={"Content-Disposition": "attachment;filename={}".format("plot.csv")})
-            return send_from_directory(folder_path/'csv/', "plot.csv", as_attachment = True)
+            #return send_from_directory(folder_path+'csv/', "plot.csv", as_attachment = True)
+            file_to_be_sent = open(folder_path+'csv/plot.csv','rb')
+            return send_file(file_to_be_sent, attachment_filename="plot.csv", as_attachment = True)
         elif self.output == OutputFormat["png"]:
             plot.background_fill_color = None
             plot.border_fill_color = None
@@ -113,10 +115,11 @@ class Plotter(ABC):
             image = Image.open(folder_path+"pdf/plot.png")
             pdf = image.convert('RGB')
             pdf.save(folder_path+'pdf/plot.pdf')
-            #return Response(pdf, mimetype="application/pdf",
-            #                headers={"Content-Disposition": "attachment;filename={}".format("plot.pdf")})
-            #return send_from_directory(folder_path+"pdf/", "plot.pdf", as_attachment = True, conditional=True)
-            return send_file(folder_path+"pdf/plot.pdf", attachment_filename="plot.pdf", conditional=True)
+            #return Response(image, mimetype="application/png",
+            #                headers={"Content-Disposition": "attachment;filename={}".format("plot.png")})
+            #return send_from_directory("D:/DD/o3webapp-be/o3webapp_be/plot/pdf/", "test.pdf", as_attachment = True)
+            file_to_be_sent = open(folder_path+'pdf/plot.pdf','rb')
+            return send_file(file_to_be_sent, attachment_filename="plot.pdf", as_attachment = True)
         else:
             data = json.dumps(json_item(layout))
             return Response(data, mimetype='application/json')

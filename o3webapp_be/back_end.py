@@ -1,4 +1,4 @@
-from flask import Flask, request, url_for, redirect, jsonify, json,send_from_directory
+from flask import Flask, request, url_for, redirect, jsonify, json,send_from_directory, make_response, Response, send_file
 from flask_cors import CORS
 from flask_restful import reqparse, abort, Api, Resource
 from werkzeug.exceptions import HTTPException
@@ -7,6 +7,7 @@ import os
 import io
 import base64
 from PIL import Image
+from PyPDF2 import PdfFileReader
 
 from o3webapp_be.userManager import UserManager, OpID
 from o3webapp_be.backendException import LoginException, TypeModelsVarsParserException
@@ -138,8 +139,8 @@ class Plot(Resource):
             userManager = UserManager(request)
             r = userManager.handle_process_on_plotpage(OpID.plot)
             #print(r)
-            img = self.get_encoded_img()
-            response_data = {"image": img}
+            #img = self.get_encoded_img()
+            #response_data = {"image": img}
         except FileNotFoundError as e:
             print(e)
             return "json file with exception info",204
@@ -147,9 +148,9 @@ class Plot(Resource):
             print(e)
             return "json file with exception info",205
         else:
-            return response_data, 200
+            #return response_data, 200
             #return jsonify(response_data),200
-            #return r,200
+            return r,200
 
     def get_encoded_img(self):
         folder_path = Path(os.getenv('PLOT_FOLDER'))
@@ -161,7 +162,7 @@ class Plot(Resource):
         my_encoded_img = base64.encodebytes(img_byte_arr.getvalue()).decode('ascii')
         return my_encoded_img
 
-api.add_resource(Plot, '/download1111/<format>')
+api.add_resource(Plot, '/download1/<format>')
 
 
 
