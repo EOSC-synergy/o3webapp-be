@@ -21,8 +21,13 @@ class PtypeTestCase(unittest.TestCase):
     def test_app_is_testing(self):
         self.assertTrue(app.config['TESTING'])
 
+    def test_ptype_status_code(self):
+        resp = self.client.get('/plot')
+
+        self.assertEqual(200, resp.status_code)
+
     def test_ptype(self):
-        resp = self.client.post('/plot', headers=self.headers).json
+        resp = self.client.get('/plot', headers=self.headers).json
 
         expected_json = ["tco3_zm", "vmro3_zm", "tco3_return"]
 
