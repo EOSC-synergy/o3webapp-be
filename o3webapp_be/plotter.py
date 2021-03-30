@@ -4,7 +4,6 @@ from math import pi
 import numpy as np
 from scipy import signal
 from abc import ABC, abstractmethod
-
 # bokeh plot
 from bokeh.core.properties import String, Instance
 import pandas as pd
