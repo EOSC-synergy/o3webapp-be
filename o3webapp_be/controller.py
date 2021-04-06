@@ -5,7 +5,8 @@ from o3webapp_be.plotData import PlotData
 from o3webapp_be.requestor import APIInfoRequestor,PlotypesRequestor,ModelsInfoRequestor,ModelInfoRequestor, TypeModelsVarsRequestor
 from o3webapp_be.requestor import Tco3ZmRequestor,Tco3ReturnRequestor,Vmro3ZmRequestor,InfoUpdateRequestor,PlotDataRequestor
 from o3webapp_be.requestParser import TypeModelsVarsParser,Tco3ZmParser,Tco3ReturnParser,Vmro3ZmParser, PlotParser
-from o3webapp_be.plotter import Tco3ZmPlotter, Vmro3ZmPlotter, Tco3ReturnPlotter
+from o3webapp_be.plotter import Tco3ZmPlotter, Vmro3ZmPlotter, Tco3ReturnPlotter, ZmPlotter
+from o3webapp_be.responder import PlotDataResponder, PlotResponder, DownloadResponder, TypeModelsVarsResponder, InfoResponder
 
 ####################################################
 #version: V1.0
@@ -40,9 +41,11 @@ class InfoUpateController(RemoteController):
     def __init__(self, param):
         super().__init__(param)
         self.infoRequestor = InfoUpdateRequestor()
+        self.infoResponder = InfoResponder()
     
     def handle_process(self):
-        return jsonify(self.infoRequestor.request_info())
+        info = self.infoRequestor.request_info()
+        return self.infoResponder.respond_info(info)
 
 class APIInfoController(InfoUpateController):
     def __init__(self, param):
@@ -70,6 +73,7 @@ class TypeModelsVarsController(RemoteController):
         self.param = param
         self.typeModelsVarsParser = TypeModelsVarsParser()
         self.typeModelsVarsRequestor = TypeModelsVarsRequestor()
+        self.typeModelsVarsResponder = TypeModelsVarsResponder()
 
     # I: <'pType': 'tco3_zm/vmro3_zm/tco3_return'>
     # O: <<'models': []>, <'vars': []>>
@@ -79,10 +83,10 @@ class TypeModelsVarsController(RemoteController):
         completeJson = self.typeModelsVarsRequestor.request_vars()
         varsJson = self.typeModelsVarsParser.parse_varsjson_file(completeJson, typeName)
         #TODO structure of json response to frontend
-        return jsonify({'models': modelsJson, 'vars': varsJson})
+        return self.typeModelsVarsResponder.respond_info([modelsJson, varsJson])
 
 class PlotController(RemoteController):
-
+    # TODO use enum PlotType as key
     plotControllerDict = {'tco3_zm': (lambda jsonRequest: Tco3ZmController(jsonRequest)),
                           'vmro3_zm': (lambda jsonRequest: Vmro3ZmController(jsonRequest)),
                           'tco3_return': (lambda jsonRequest: Tco3ReturnController(jsonRequest))}
@@ -91,7 +95,8 @@ class PlotController(RemoteController):
         super().__init__(jsonRequest)
         self.plotParser = PlotParser()
         self.plotRequestor = PlotDataRequestor()
-        self.plotter = Tco3ZmPlotter()
+        self.plotter = ZmPlotter()
+        self.plotResponder = PlotDataResponder()
 
     def handle_process(self):
         self.plotData = self.plotParser.parse_request_2_plotdata(self.jsonRequest)
@@ -99,7 +104,8 @@ class PlotController(RemoteController):
         modelDataJsonFile = self.plotRequestor.request_model_data(self.plotData)
         #print(modelDataJsonFile)
         self.plotParser.parse_json_2_plotdata(modelDataJsonFile, self.plotData)
-        return self.plotter.plot_data(self.plotData)
+        outputPlot = self.plotter.plot_data(self.plotData)
+        return self.plotResponder.respond_data(outputPlot, self.plotData)
 
 class Tco3ZmController(PlotController):
     def __init__(self, jsonRequest):

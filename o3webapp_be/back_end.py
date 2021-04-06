@@ -7,7 +7,6 @@ import os
 import io
 import base64
 from PIL import Image
-from PyPDF2 import PdfFileReader
 
 from o3webapp_be.userManager import UserManager, OpID
 from o3webapp_be.backendException import LoginException, TypeModelsVarsParserException

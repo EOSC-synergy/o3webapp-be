@@ -33,6 +33,7 @@ class OpID(enum.Enum):
 
 class UserManager:
 
+    #TODO add opID for download and mean_median_trend etc.
     opDict = {OpID.api_info: (lambda param: APIInfoController(param)),
               OpID.p_type: (lambda param: PlotypesController(param)),
               OpID.models_info: (lambda param: ModelsInfoController(param)),
@@ -40,7 +41,6 @@ class UserManager:
               OpID.t_M_V: (lambda param:TypeModelsVarsController(param)),
               OpID.plot: (lambda jsonRequest:PlotController.plotControllerDict[jsonRequest['pType']](jsonRequest))}
 
-    #TODO add opID for download and mean_median_trend etc.
 
     def __init__(self, userRequest):
         self.userRequest = userRequest

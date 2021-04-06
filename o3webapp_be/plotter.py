@@ -1,33 +1,21 @@
-from flask import url_for, redirect, Response, send_from_directory, send_file
-import json
 from math import pi
 import numpy as np
 from scipy import signal
+import pandas as pd
 from abc import ABC, abstractmethod
 # bokeh plot
 from bokeh.core.properties import String, Instance
-import pandas as pd
 from pandas import Series, DataFrame
 from datetime import datetime as dt
 from bokeh.models import ColumnDataSource, Legend, LegendItem, CustomJS, ColorPicker
 from bokeh.models import DatetimeTickFormatter, FuncTickFormatter, PrintfTickFormatter, NumeralTickFormatter
 from bokeh.models import Button, Panel, Tabs, RadioButtonGroup, Div, Slider, TextInput
 from bokeh.layouts import column, row, WidgetBox, widgetbox
-from bokeh.plotting import figure, output_file, show, curdoc
+from bokeh.plotting import figure, output_file
 from bokeh.events import ButtonClick, Tap
 from bokeh.palettes import Spectral11, Category20
 from bokeh.models.tickers import AdaptiveTicker, CompositeTicker, YearsTicker, MonthsTicker, DaysTicker
 from bokeh.models.tools import HoverTool
-# bokeh io
-from bokeh.io import show, output, export_png, export_svgs
-from PIL import Image
-from bokeh.embed import json_item, file_html
-from bokeh.resources import CDN
-from io import StringIO
-from selenium import webdriver
-import csv
-from pathlib import Path
-import os
 
 from o3webapp_be.plotData import PlotData, PlotType, OutputFormat
 
@@ -60,68 +48,9 @@ class Plotter(ABC):
         self.nameModelDict = plotdata.get_name_model_dict()
         self.modelList = plotdata.get_modeldata_list()
         self.modelNum = plotdata.get_modeldata_num()
+        self.modelMonthNum = plotdata.get_vardata().get_month_num()
         self.plotType = plotdata.get_ptype()
         self.output = plotdata.get_output()
-
-    @abstractmethod
-    def build_models_dict(self):
-        pass
-
-    # TODO implemented in Responder, who takes care of the format of the output.
-    def do_export(self, layout, plot):
-        folder_path = os.getenv('PLOT_FOLDER')
-        #options = webdriver.ChromeOptions()
-        #options.add_experimental_option('excludeSwitches', ['enable-logging'])
-        if self.output == OutputFormat["csv"]:
-            #modelDict = self.build_models_dict()
-            #with open(folder_path/'csv/plot.csv', 'w', newline='') as csvfile:
-            #    writer = csv.writer(csvfile, delimiter = ' ')
-            #    for name, model in modelDict.items():
-            #        writer.writerow(model)
-
-            df = pd.DataFrame(self.build_models_dict())
-            df.to_csv(folder_path+'csv/plot.csv', encoding='utf-8', index=False)
-
-            #df = pd.DataFrame(self.build_models_dict())
-            #dfbuffer = StringIO()
-            #df.to_csv(dfbuffer, encoding='utf-8', index=False)
-            #dfbuffer.seek(0)
-            #data = dfbuffer.getvalue()
-            #return Response(data, mimetype="text/csv",
-            #                headers={"Content-Disposition": "attachment;filename={}".format("plot.csv")})
-            #return send_from_directory(folder_path+'csv/', "plot.csv", as_attachment = True)
-            file_to_be_sent = open(folder_path+'csv/plot.csv','rb')
-            return send_file(file_to_be_sent, attachment_filename="plot.csv", as_attachment = True)
-        elif self.output == OutputFormat["png"]:
-            plot.background_fill_color = None
-            plot.border_fill_color = None
-            data = export_png(plot, filename=folder_path/"png/plot.png")
-            #return Response(data, mimetype="image/png",
-            #                headers={"Content-Disposition": "attachment;filename={}".format("plot.png")})
-            return send_from_directory(folder_path/'png/', "plot.png", as_attachment = True)
-        elif self.output == OutputFormat["svg"]:
-            plot.background_fill_color = None
-            plot.border_fill_color = None
-            plot.output_backend = "svg"
-            data = export_svgs(plot, filename=folder_path/"svg/plot.svg")
-            #return Response(data, mimetype="image/svg+xml",
-            #                headers={"Content-Disposition": "attachment;filename={}".format("plot.svg")})
-            return send_from_directory(folder_path/'svg/', "plot.svg", as_attachment = True)
-        elif self.output == OutputFormat["pdf"]:
-            plot.background_fill_color = None
-            plot.border_fill_color = None
-            png = export_png(plot, filename=folder_path+"pdf/plot.png")
-            image = Image.open(folder_path+"pdf/plot.png")
-            pdf = image.convert('RGB')
-            pdf.save(folder_path+'pdf/plot.pdf')
-            #return Response(image, mimetype="application/png",
-            #                headers={"Content-Disposition": "attachment;filename={}".format("plot.png")})
-            #return send_from_directory("D:/DD/o3webapp-be/o3webapp_be/plot/pdf/", "test.pdf", as_attachment = True)
-            file_to_be_sent = open(folder_path+'pdf/plot.pdf','rb')
-            return send_file(file_to_be_sent, attachment_filename="plot.pdf", as_attachment = True)
-        else:
-            data = json.dumps(json_item(layout))
-            return Response(data, mimetype='application/json')
 
     def boxcar_easy(self, window, data):
         boxcar = np.ones(window)
@@ -144,7 +73,6 @@ class Plotter(ABC):
 # Plotter,
 # plotting the data in *-zm plot type, time -> messurement,
 # whose x axis represents the time.
-
 
 class ZmPlotter(Plotter):
     mmtLabels = ["mean", "median", "trend"]
@@ -186,8 +114,8 @@ class ZmPlotter(Plotter):
         #+----------------+----------------+               #
         ####################################################
         # ROW_2 :: mmt block                                ##################################
-        maxBoxNum = 5
-        maxLegendNum = 7
+        maxBoxNum = 7
+        maxLegendNum = self.modelNum
         # mmt block header
         mmtButtonGroup = RadioButtonGroup(labels=ZmPlotter.mmtLabels, css_classes = ["mmt_header", "extra-buttons"])
         boxNum = ["number" for i in range(maxBoxNum + 1)]
@@ -196,8 +124,9 @@ class ZmPlotter(Plotter):
             labels=boxNum, active=0, tags=[0], visible=False)
         mmtBoxActivity = RadioButtonGroup(
             labels=boxActivity, active=0, visible=False)
-        yearRef = Button(
-            label="1980 reference", tags=[], css_classes = ["year_reference"], visible=True)
+        dataRebin = Button(
+            label="origin", tags=["origin", "rebin"], css_classes = ["data_rebin"], visible=True)
+        
         mmtLegendBlockHead = row(mmtButtonGroup, mmtBoxNum, mmtBoxActivity)
         # mmt box array
         boxHeaderW = 100
@@ -647,17 +576,201 @@ class ZmPlotter(Plotter):
         self.setup_axis(p)
         p.toolbar.autohide = True
         self.setup_legends(p, legendLayout)
-        sliderLayout = self.setup_slider_layout(p, legendLayout, mmtLegendBlock, colorPicker)
+        sliderLayout = self.setup_slider_layout(p, legendLayout, mmtLegendBlock, colorPicker, dataRebin)
+
+        rebinCallback = CustomJS(args=dict(mmtLegendBlock=mmtLegendBlock, plot = p, legends=legendLayout.items, 
+            modelDict = self.nameModelDict, modelNum=self.modelNum, modelMonthNum = self.modelMonthNum, 
+            maxBoxNum=maxBoxNum),code="""
+            // TODO: rewrite, switch the origin lines to rebin lines
+
+                //reset boxcar factor to 1.
+
+                //
+                var copyDictX = {};
+                var copyDictY = {};
+                var isRebin = (cb_obj.origin.label==cb_obj.origin.tags[0]);
+                if(isRebin){
+                    cb_obj.origin.label = cb_obj.origin.tags[1];
+                    //rebin model data, and update the lines with rebin data
+                    for(var k = 0; k <modelNum; k++){
+                        var legend = legends[k];
+                        var modelName = legend.label.value;
+                        var originDataY = modelDict[modelName]['y'];
+                        var originDataX = modelDict[modelName]['x'];
+                        var originDataLen = originDataY.length;
+                        var lineData = legend.renderers[0].data_source;
+                        var dataY = lineData.data['y'];
+                        var dataX = lineData.data['x'];
+                        var dataLen = dataY.length;
+                        dataX.shape[0]=131;
+                        console.log(dataX);
+                        dataY.splice(0,dataLen);
+                        dataX.splice(0,dataLen);
+                        //calculate rebin
+                        for(var i=0; i<originDataLen; i++){
+                            dataX.push(originDataX[i]);
+                            var monthSum = 0;
+                            for(var m=0; m<modelMonthNum; m++, i++){
+                                monthSum += originDataY[i];
+                            }
+                            dataY.push(monthSum/modelMonthNum);
+                        }
+                        copyDictY[modelName] = dataY;
+                        copyDictX[modelName] = dataX;
+                        lineData.change.emit();
+                    }
+                }else{
+                    cb_obj.origin.label = cb_obj.origin.tags[0];
+                    //update the lines with model data
+                    for(var k = 0; k <modelNum; k++){
+                        var legend = legends[k];
+                        var modelName = legend.label.value;
+                        var originDataY = modelDict[modelName]['y'];
+                        var originDataX = modelDict[modelName]['x'];
+                        var originDataLen = originDataY.length;
+                        var lineData = legend.renderers[0].data_source;
+                        var dataY = lineData.data['y'];
+                        var dataX = lineData.data['x'];
+                        var dataLen = dataY.length;
+                        dataY.splice(0,dataLen);
+                        dataX.splice(0,dataLen);
+                        for(var i=0; i<originDataLen; i++){
+                            dataY.push(originDataY[i]);
+                            dataX.push(originDataX[i]);
+                        }
+                        copyDictY[modelName] = dataY;
+                        copyDictX[modelName] = dataX;
+                        lineData.change.emit();
+                    }
+                }
+                
+                //modify mmt data, with mean/median/trend based on modified model data
+                var firstModelName = legend[0].label.value;
+                //TODO: format the x value in year
+                var copyX = copyDictX[firstModelName];
+                var copyXLen = copyX.length;
+                var copyFirstY = copyDictX[firstModelName];
+                var blockHeader = (mmtLegendBlock.children)[0].children;
+                var boxArr = (mmtLegendBlock.children)[1].children;
+                for(var k = 0; k <maxBoxNum; k++){
+                    var legendArr = boxArr[k].children;
+                    var curLegendNum = legendArr[0].children[1].active;
+                    var mmtBoxName = (legendArr[0].children)[0].label;
+                    var mmtType = (legendArr[0].children)[0].tags[1];
+                    var mmtPlot = plot.select(name=mmtBoxName)[0];
+                    var mmtModel = mmtPlot.data_source;
+                    var yArr = (mmtModel.data)['y'];
+                    var xArr = (mmtModel.data)['x'];
+                    var yArrLen = yArr.length;
+                    yArr.splice(0,yArrLen);
+                    xArr.splice(0,yArrLen);
+                    if(mmtType == 0){
+                        var dataYArr = [];
+                        for(var i=1; i<=curLegendNum; i++){
+                            var curDataYArr = copyDictY[legendArr[i].label];
+                            dataYArr.push(curDataYArr);
+                        }
+                        for (var i=0; i<copyXLen; i++){
+                            var dataXSum = 0;
+                            for(var j=0; j<curLegendNum; j++){
+                                dataXSum += dataYArr[j][i];
+                            }
+                            xArr.push(copyX[i]);
+                            if(curLegendNum == 0) {
+                                yArr.push(copyFirstY[0]);
+                                continue;
+                            }
+                            yArr.push(dataXSum/curLegendNum);
+                        }
+                    }else if(mmtType == 1){
+                        var dataYArr = [];
+                        for(var i=1; i<=curLegendNum; i++){
+                            var curDataYArr = copyDictY[legendArr[i].label];
+                            dataYArr.push(curDataYArr);
+                        }
+                        for (var i=0; i<copyXLen; i++){
+                            var dataXArr = [];
+                            for(var j=0; j<curLegendNum; j++){
+                                dataXArr.push(dataYArr[j][i]);
+                            }
+                            xArr.push(copyX[i]);
+                            if(curLegendNum == 0) {
+                                yArr.push(copyFirstY[0]);
+                                continue;
+                            }
+                            dataXArr.sort();
+                            yArr.push(curLegendNum%2 ? dataXArr[(curLegendNum-1)/2]:
+                                        (dataXArr[curLegendNum/2-1] + dataXArr[curLegendNum/2])/2);
+                        }
+                    }else if(mmtType == 2){
+                        var dataYArr = [];
+                        for(var i=1; i<=curLegendNum; i++){
+                            var curDataYArr = copyDictY[legendArr[i].label];
+                            dataYArr.push(curDataYArr);
+                        }
+                        for (var i=0; i<copyXLen; i++){
+                            var dataXArr = [];
+                            for(var j=0; j<curLegendNum; j++){
+                                dataXArr.push(dataYArr[j][i]);
+                            }
+                            xArr.push(copyX[i]);
+                            //calculate trend with least squared fit
+                            if(curLegendNum == 0) {
+                                yArr.push(copyFirstY[0]);
+                                continue;
+                            }else if(curLegendNum == 1) {
+                                yArr.push(dataXArr[0]);
+                                continue;
+                            }else if(curLegendNum == 2) {
+                                yArr.push((dataXArr[0]+dataXArr[1])/2);
+                                continue;
+                            }
+                            var scaleY = 10000;
+                            var offsetY = dataYArr[0][0];
+                            var factor = 60;
+                            var count = 0;
+                            var sumX = 0;
+                            var sumX2 = 0;
+                            var sumX3 = 0;
+                            var sumX4 = 0;
+                            var sumY = 0;
+                            var sumXY = 0;
+                            var sumX2Y = 0;
+                            for (var x = 0; x < dataXArr.length; x++)
+                            {
+                                count++;
+                                sumX += x;
+                                sumX2 += x*x;
+                                sumX3 += x*x*x;
+                                sumX4 += x*x*x*x;
+                                sumY += dataXArr[x];
+                                sumXY += x*dataXArr[x];
+                                sumX2Y += x*x*dataXArr[x];
+                            }
+                            //var det = count * sumX2 - sumX * sumX;
+                            //var offset = (sumX2 * sumY - sumX * sumXY) / det;
+                            //var scale = (count * sumXY - sumX * sumY) / det;
+                            //yArr.push(offset + factor * scale);
+                            //continue;
+                            var det = count*sumX2*sumX4 - count*sumX3*sumX3 - sumX*sumX*sumX4 + 2*sumX*sumX2*sumX3 - sumX2*sumX2*sumX2;
+                            var offset = sumX*sumX2Y*sumX3 - sumX*sumX4*sumXY - sumX2*sumX2*sumX2Y + sumX2*sumX3*sumXY + sumX2*sumX4*sumY - sumX3*sumX3*sumY;
+                            var scale = -count*sumX2Y*sumX3 + count*sumX4*sumXY + sumX*sumX2*sumX2Y - sumX*sumX4*sumY - sumX2*sumX2*sumXY + sumX2*sumX3*sumY;
+                            var accel = sumY*sumX*sumX3 - sumY*sumX2*sumX2 - sumXY*count*sumX3 + sumXY*sumX2*sumX - sumX2Y*sumX*sumX + sumX2Y*count*sumX2;
+                            yArr.push((offset + factor*scale + factor*factor*accel)/det/scaleY+offsetY);
+                        }
+                    }
+                    mmtModel.change.emit();
+                    mmtPlot.visible = true;
+                    mmtPlot.change.emit();
+                }
+                """)
+        dataRebin.js_on_click(rebinCallback)
         # LAYOUT :: ROW_1, ROW_2 #########################
         layout = column(sliderLayout, mmtLegendBlock)
-        # tab pages
-        #tab1 = Panel(child=fig1, title="sine")
-        #tab2 = Panel(child=fig2, title="cos")
-        #tabs = Tabs(tabs=[ tab1, tab2 ])
 
-        return self.do_export(layout, p)
+        return layout if self.output == OutputFormat.json else p
 
-    def setup_slider_layout(self, plot, legendLayout, mmtLegendBlock, colorPicker):
+    def setup_slider_layout(self, plot, legendLayout, mmtLegendBlock, colorPicker,dataRebin):
         sampleModel = list(self.modelDict.values())[0]
         timeLen = len(sampleModel.get_val_cds()['x'])
         maxLen = timeLen / 10 + 1
@@ -805,17 +918,8 @@ class ZmPlotter(Plotter):
                 """)
         slider = Slider(start=1, end=maxLen, value=1, step=1, title="smooth factor", css_classes = ["boxcar_factor"])
         slider.js_on_change('value', callback)
-        return column(row(slider,row(list(colorPicker.values()))) ,plot)
-
-    def build_models_dict(self):
-        modelsDict = {}
-        firstModelData = self.modelList[0].get_val_cds()
-        modelsDict['Time'] = firstModelData['x']
-        for model in self.modelList:
-            modelName = model.get_name()
-            modelData = model.get_val_cds()
-            modelsDict[modelName] = modelData['y']
-        return modelsDict
+        colorPickerBar = row(list(colorPicker.values()))
+        return column(row(dataRebin, slider, colorPickerBar) ,plot)
 
     def setup_mmt_legendboxArr(self, maxBoxNum, maxLegendNum):
         legendNum = ["number" for i in range(maxLegendNum)]
@@ -1020,5 +1124,3 @@ class Tco3ReturnPlotter(Plotter):
     def plot_data(self, plotdata):
         pass
 
-    def build_models_dict(self):
-        pass

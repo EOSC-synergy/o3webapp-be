@@ -91,6 +91,9 @@ class VarData:
     def get_dict(self):
         return self.varDataDict
 
+    def get_month_num(self):
+        return len(self.varDataDict["month"])
+
     def __str__(self):
         return self.varDataDict.__str__()
 
