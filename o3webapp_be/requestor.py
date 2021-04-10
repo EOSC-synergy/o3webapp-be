@@ -73,9 +73,10 @@ class PlotDataRequestor(Requestor):
 
     def prepare_params(self):
         varDict = self.plotData.get_vardata_dict()
-        varDict["model"]=self.merge_array(varDict["model"])
-        varDict["month"]=self.merge_array(varDict["month"])
-        varStr = self.merge_dict(varDict)
+        varParamDict = {}
+        varParamDict["model"]=self.merge_array(varDict["model"])
+        varParamDict["month"]=self.merge_array(varDict["month"])
+        varStr = self.merge_dict(varParamDict)
         return varStr
     
     def merge_dict(self, dict):

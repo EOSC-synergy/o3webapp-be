@@ -3,6 +3,7 @@ import json
 import pandas as pd
 from abc import ABC, abstractmethod
 # bokeh io
+from bokeh.plotting import output_file, show # TODO test in local page
 from bokeh.io import export_png, export_svgs
 from bokeh.embed import json_item, file_html
 from selenium import webdriver
@@ -77,6 +78,8 @@ class PlotDataResponder(Responder):
 class PlotResponder(PlotDataResponder):
 
     def respond_plot(self, layout):
+        #output_file(os.getenv('PLOT_FOLDER')+'o3as_plot.html')
+        #show(layout)
         data = json.dumps(json_item(layout))
         return Response(data, mimetype='application/json')
 

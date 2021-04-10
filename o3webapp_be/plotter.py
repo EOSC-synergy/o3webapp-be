@@ -11,11 +11,11 @@ from bokeh.models import ColumnDataSource, Legend, LegendItem, CustomJS, ColorPi
 from bokeh.models import DatetimeTickFormatter, FuncTickFormatter, PrintfTickFormatter, NumeralTickFormatter
 from bokeh.models import Button, Panel, Tabs, RadioButtonGroup, Div, Slider, TextInput
 from bokeh.layouts import column, row, WidgetBox, widgetbox
-from bokeh.plotting import figure, output_file
+from bokeh.plotting import figure
 from bokeh.events import ButtonClick, Tap
 from bokeh.palettes import Spectral11, Category20
 from bokeh.models.tickers import AdaptiveTicker, CompositeTicker, YearsTicker, MonthsTicker, DaysTicker
-from bokeh.models.tools import HoverTool
+from bokeh.models.tools import HoverTool, WheelZoomTool
 
 from o3webapp_be.plotData import PlotData, PlotType, OutputFormat
 
@@ -49,6 +49,7 @@ class Plotter(ABC):
         self.modelList = plotdata.get_modeldata_list()
         self.modelNum = plotdata.get_modeldata_num()
         self.modelMonthNum = plotdata.get_vardata().get_month_num()
+        self.xLength = plotdata.get_x_count()
         self.plotType = plotdata.get_ptype()
         self.output = plotdata.get_output()
 
@@ -76,10 +77,45 @@ class Plotter(ABC):
 
 class ZmPlotter(Plotter):
     mmtLabels = ["mean", "median", "trend"]
+    # modelDict, nameModelDict: origin data
+    def rebin_data(self, dataDict):
+        rebinDict = {}
+        for name, model in dataDict.items():
+            data = model.get_val_cds()
+            #df = pd.DataFrame(data=data)
+            #df['x'] = df['x'].dt.year
 
+            dataX = data['x'].dt.year
+            dataY = data['y']
+            rebinData = {}
+            rebinDataX = []
+            rebinDataY = []
+            rebinY = 0
+
+            for m in range(len(dataX)):
+                rebinY += dataY[m]
+                if ((m+1)%self.modelMonthNum == 0):
+                    rebinDataY.append(rebinY/self.modelMonthNum)
+                    rebinDataX.append(dataX[m])
+                    rebinY = 0
+            rebinData['x'] = rebinDataX
+            rebinData['y'] = rebinDataY
+            rebinDict[name] = rebinData
+        return rebinDict
+    # rebin
+    # origin rebin data
+    # data renderer, mmt renderer (boxcar)
+
+    # non-rebin
+    # origin data
+    # data renderer, mmt renderer (boxcar)
+
+    # REBIN + boxcar + colorPicker
+    # plot + legendLayout
+    # mmt
     def plot_data(self, plotdata):
         self.init_plotter(plotdata)
-
+        rebinOriginData = self.rebin_data(self.modelDict)
         ################### init figure ##############################
         hoverTool = HoverTool(
             tooltips = [
@@ -91,11 +127,23 @@ class ZmPlotter(Plotter):
             formatters={'@x': 'datetime'},
             mode = 'mouse'
             )
-        
+        rebinHoverTool = HoverTool(
+            tooltips = [
+            ("date", "@x{%d}"),
+            ("y", "$y"),
+            ("name","$name")
+            ],
+            formatters={'@x': 'printf'},
+            mode = 'mouse'
+            )
         p = figure(plot_width=1500, plot_height=500,
-                   title=self.plotType.name, x_axis_type="datetime")
+                   title=self.plotType.name, x_axis_type="datetime", visible = True)
         p.add_tools(hoverTool)
 
+        rebinP = figure(plot_width=1500, plot_height=500,
+                   title=self.plotType.name, visible = False)
+        rebinP.add_tools(WheelZoomTool())
+        rebinP.add_tools(rebinHoverTool)
         # TODO add color , hide and delete button
         ###################  mmt block #####################
         #+----------------+--------------+----------------+#
@@ -138,17 +186,20 @@ class ZmPlotter(Plotter):
         ################# plotted_legends : model_legends + plotted_mmt_legends ##########################
         legendLayout = Legend(
             items=[], tags=[i for i in range(maxBoxNum)], location="center")
+        rebinLegendLayout = Legend(
+            items=[], tags=[i for i in range(maxBoxNum)], location="center")
         ################# mmt_box : model_names #####################################
         mmtLegendBoxArr = self.setup_mmt_legendboxArr(maxBoxNum, maxLegendNum)
         ################# hidden_mmt_legends ##########################
-        mmtModelPlotArr = self.plot_mmt(maxBoxNum, p, colorPicker)
+        mmtModelPlotArr = self.plot_mmt(rebinOriginData, maxBoxNum, p, rebinP, colorPicker)
         # mmt block
         mmtLegendBlock = column(mmtLegendBlockHead, mmtLegendBoxArr)
         ####################--------------CREATE MMT BOX---------------###############################
 
         #click mmt_button
         mmtButtonGroup.js_on_click(CustomJS(args=dict(mmtLegendBlock=mmtLegendBlock,
-            legendLayout=legendLayout, mmtPlotArr=mmtModelPlotArr['mmtPlotArr'], 
+            legendLayout=legendLayout,rebinLegendLayout=rebinLegendLayout, 
+            mmtPlotArr=mmtModelPlotArr['mmtPlotArr'], rebinMmtPlotArr=mmtModelPlotArr['rebinMmtPlotArr'],
             mmtLabels=ZmPlotter.mmtLabels, height=mmtLegendH, width=boxHeaderW, maxBoxNum=maxBoxNum), 
             code="""
                 if(cb_obj.active == 'None') return;
@@ -175,15 +226,26 @@ class ZmPlotter(Plotter):
                     boxTitle.height = height;
                     boxTitle.width = width;
                     boxTitle.button_type = 'success';
+
                     var mmtLegend = mmtPlotArr[legendLayout.tags[0]];
+                    var rebinMmtLegend = rebinMmtPlotArr[rebinLegendLayout.tags[0]];
                     legendLayout.tags.splice(0,1);
+                    rebinLegendLayout.tags.splice(0,1);
                     mmtLegend.label = boxTitle.label;
+                    rebinMmtLegend.label = boxTitle.label;
                     var mmtPlot = mmtLegend.renderers[0];
+                    var rebinMmtPlot = rebinMmtLegend.renderers[0];
                     mmtPlot.name = boxTitle.label;
                     mmtPlot.change.emit();
+                    rebinMmtPlot.name = "rebin_"+boxTitle.label;
+                    rebinMmtPlot.change.emit();
+
                     var legendNum = legendLayout.items.length;
                     legendLayout.items.splice(legendNum,0,mmtLegend);
                     legendLayout.change.emit();
+                    rebinLegendLayout.items.splice(legendNum,0,rebinMmtLegend);
+                    rebinLegendLayout.change.emit();
+
                     var boxDel = boxHeader.children[2];
                     boxDel.visible = true;
                     boxDel.height = height;
@@ -233,7 +295,7 @@ class ZmPlotter(Plotter):
             # Click box_delete
             legendBoxDelete = (legendArr[0].children)[2]
             legendBoxDelete.js_on_click(CustomJS(args=dict(mmtLegendBlock=mmtLegendBlock, 
-                legendLayout=legendLayout, modelNum=self.modelNum), code="""
+                legendLayout=legendLayout,rebinLegendLayout=rebinLegendLayout, modelNum=self.modelNum), code="""
                     var boxIndex = cb_obj.origin.tags[0];
                     //update legend layout
                     var delPos = modelNum + boxIndex;
@@ -244,6 +306,14 @@ class ZmPlotter(Plotter):
                     mmtPlot.change.emit();
                     legendLayout.tags.push(delMmtPlot.tags[0]);
                     legendLayout.change.emit();
+                    //update rebin legend layout
+                    delMmtPlot = rebinLegendLayout.items[delPos]
+                    rebinLegendLayout.items.splice(delPos,1);
+                    mmtPlot = delMmtPlot.renderers[0];
+                    mmtPlot.visible = false;
+                    mmtPlot.change.emit();
+                    rebinLegendLayout.tags.push(delMmtPlot.tags[0]);
+                    rebinLegendLayout.change.emit();
 
                     var boxArr = (mmtLegendBlock.children)[1].children;
                     var delBox = boxArr[boxIndex];
@@ -298,28 +368,28 @@ class ZmPlotter(Plotter):
             # Click box_legend
             for legendIndex in range(1, maxLegendNum):
                 legend = legendArr[legendIndex]
-                legend.js_on_click(CustomJS(args=dict(mmtLegendBlock=mmtLegendBlock, plot = p), code="""
+                legend.js_on_click(CustomJS(args=dict(mmtLegendBlock=mmtLegendBlock, originPlot = p, rebinPlot = rebinP), code="""
                         var boxIndex = cb_obj.origin.tags[0];
                         //search for the box
                         var boxArr = (mmtLegendBlock.children)[1].children;
                         var box = boxArr[boxIndex];
                         var boxHeader = box.children[0];
                         var mmtType = boxHeader.children[0].tags[1];
-                        //update mmtplot
                         var modelName = cb_obj.origin.label;
                         var mmtBoxName = boxHeader.children[0].label;
-                        var mmtPlot = plot.select(name=mmtBoxName)[0];
+                        var curLegendNum = boxHeader.children[1].active;
+                        
+                        //update origin mmtplot
+                        var mmtPlot = originPlot.select(name=mmtBoxName)[0];
                         var mmtModel = mmtPlot.data_source;
                         //var mmtPos = modelNum + boxIndex;
                         //var mmtIndex = legendLayout.items[mmtPos].tags[0];
                         //var mmtPlot = legendLayout.items[mmtPos].renderers[0];
                         //var mmtModel = mmtModelArr[mmtIndex];
-
                         var yArr = (mmtModel.data)['y'];
-                        var curLegendNum = boxHeader.children[1].active;
 
                         if(mmtType == 0){
-                            var legendY = plot.select(name=modelName)[0].data_source.data['y'];
+                            var legendY = originPlot.select(name=modelName)[0].data_source.data['y'];
                             for (var j=0; j<yArr.length; j++){
                                 if(curLegendNum == 1){
                                     //yArr[j] = 0;
@@ -331,7 +401,7 @@ class ZmPlotter(Plotter):
                             var dataYArr=[];
                             for(var i=1; i<=curLegendNum; i++){
                                 if(box.children[i].label != modelName){
-                                    var curDataYArr = plot.select(name=box.children[i].label)[0].data_source.data['y'];
+                                    var curDataYArr = originPlot.select(name=box.children[i].label)[0].data_source.data['y'];
                                     dataYArr.push(curDataYArr);
                                 }
                             }
@@ -353,7 +423,7 @@ class ZmPlotter(Plotter):
                             var dataYArr=[];
                             for(var i=1; i<=curLegendNum; i++){
                                 if(box.children[i].label != modelName){
-                                    var curDataYArr = plot.select(name=box.children[i].label)[0].data_source.data['y'];
+                                    var curDataYArr = originPlot.select(name=box.children[i].label)[0].data_source.data['y'];
                                     dataYArr.push(curDataYArr);
                                 }
                             }
@@ -415,6 +485,114 @@ class ZmPlotter(Plotter):
                         mmtPlot.visible = (curLegendNum != 1);
                         mmtPlot.change.emit();
 
+
+                        //update rebin mmtplot
+                        mmtPlot = rebinPlot.select(name="rebin_"+mmtBoxName)[0];
+                        mmtModel = mmtPlot.data_source;
+                        //var mmtPos = modelNum + boxIndex;
+                        //var mmtIndex = legendLayout.items[mmtPos].tags[0];
+                        //var mmtPlot = legendLayout.items[mmtPos].renderers[0];
+                        //var mmtModel = mmtModelArr[mmtIndex];
+                        yArr = (mmtModel.data)['y'];
+
+                        if(mmtType == 0){
+                            var legendY = rebinPlot.select(name="rebin_"+modelName)[0].data_source.data['y'];
+                            for (var j=0; j<yArr.length; j++){
+                                if(curLegendNum == 1){
+                                    //yArr[j] = 0;
+                                }else{
+                                    yArr[j] = (yArr[j]*(curLegendNum) - legendY[j])/(curLegendNum-1);
+                                }
+                            }
+                        }else if(mmtType == 1){
+                            var dataYArr=[];
+                            for(var i=1; i<=curLegendNum; i++){
+                                if(box.children[i].label != modelName){
+                                    var curDataYArr = rebinPlot.select(name="rebin_"+box.children[i].label)[0].data_source.data['y'];
+                                    dataYArr.push(curDataYArr);
+                                }
+                            }
+                            for (var i=0; i<yArr.length; i++){
+                                var dataXArr = [];
+                                var legenNum =curLegendNum-1;
+                                for(var j=0; j<legenNum; j++){
+                                    dataXArr.push(dataYArr[j][i]);
+                                }
+                                if(legenNum == 0) {
+                                    //yArr[i] = 0;
+                                    continue;
+                                }
+                                dataXArr.sort();
+                                yArr[i] = legenNum%2 ?dataXArr[(legenNum-1)/2]:
+                                          (dataXArr[legenNum/2-1] + dataXArr[legenNum/2])/2;
+                            }
+                        }else if(mmtType == 2){
+                            var dataYArr=[];
+                            for(var i=1; i<=curLegendNum; i++){
+                                if(box.children[i].label != modelName){
+                                    var curDataYArr = rebinPlot.select(name="rebin_"+box.children[i].label)[0].data_source.data['y'];
+                                    dataYArr.push(curDataYArr);
+                                }
+                            }
+                            for (var i=0; i<yArr.length; i++){
+                                var dataXArr = [];
+                                var legenNum =curLegendNum-1;
+                                for(var j=0; j<legenNum; j++){
+                                    dataXArr.push(dataYArr[j][i]);
+                                }
+
+                                //calculate trend with least squared fit
+                                if(legenNum == 0) {
+                                    //yArr[i] = 0;
+                                    continue;
+                                }else if(legenNum == 1) {
+                                    yArr[i] = dataXArr[0];
+                                    continue;
+                                }else if(legenNum == 2) {
+                                    yArr[i] = (dataXArr[0]+dataXArr[1])/2;
+                                    continue;
+                                }
+                                var scaleY = 10000;
+                                var offsetY = dataYArr[0][0];
+                                var factor = 60;
+                                var count = 0;
+                                var sumX = 0;
+                                var sumX2 = 0;
+                                var sumX3 = 0;
+                                var sumX4 = 0;
+                                var sumY = 0;
+                                var sumXY = 0;
+                                var sumX2Y = 0;
+                                for (var x = 0; x < dataXArr.length; x++)
+                                {
+                                    count++;
+                                    sumX += x;
+                                    sumX2 += x*x;
+                                    sumX3 += x*x*x;
+                                    sumX4 += x*x*x*x;
+                                    sumY += dataXArr[x];
+                                    sumXY += x*dataXArr[x];
+                                    sumX2Y += x*x*dataXArr[x];
+                                }
+                                //var det = count * sumX2 - sumX * sumX;
+                                //var offset = (sumX2 * sumY - sumX * sumXY) / det;
+                                //var scale = (count * sumXY - sumX * sumY) / det;
+                                //yArr[i] = offset + factor * scale;
+                                //continue;
+                                var det = count*sumX2*sumX4 - count*sumX3*sumX3 - sumX*sumX*sumX4 + 2*sumX*sumX2*sumX3 - sumX2*sumX2*sumX2;
+                                var offset = sumX*sumX2Y*sumX3 - sumX*sumX4*sumXY - sumX2*sumX2*sumX2Y + sumX2*sumX3*sumXY + sumX2*sumX4*sumY - sumX3*sumX3*sumY;
+                                var scale = -count*sumX2Y*sumX3 + count*sumX4*sumXY + sumX*sumX2*sumX2Y - sumX*sumX4*sumY - sumX2*sumX2*sumXY + sumX2*sumX3*sumY;
+                                var accel = sumY*sumX*sumX3 - sumY*sumX2*sumX2 - sumXY*count*sumX3 + sumXY*sumX2*sumX - sumX2Y*sumX*sumX + sumX2Y*count*sumX2;
+                                yArr[i] = (offset + factor*scale + factor*factor*accel)/det/scaleY+offsetY;
+                                    
+                            }
+                        }
+
+                        mmtModel.change.emit();
+                        mmtPlot.visible = (curLegendNum != 1);
+                        mmtPlot.change.emit();
+
+
                         //switch the legends following the deleted legends upwards
                         var legendIndex = cb_obj.origin.tags[1];
                         var j=legendIndex;
@@ -435,11 +613,13 @@ class ZmPlotter(Plotter):
         linePalette = Category20[20]
         colorIndex = 0
         for name, model in self.modelDict.items():
-            renderer = self.plot_model(p, model, linePalette[maxBoxNum + colorIndex])
+            renderer = self.plot_model(p,name, model, linePalette[maxBoxNum + colorIndex])
+            rebinRenderer = self.plot_model_data(rebinP,"rebin_"+name, rebinOriginData[name], linePalette[maxBoxNum + colorIndex])
             colorIndex += 1
             item = LegendItem(label=name, renderers=[renderer])
+            rebinItem = LegendItem(label=name, renderers=[rebinRenderer])
         ####################--------------ADD MMT MODEL---------------###############################
-            renderer_cb = CustomJS(args=dict(mmtLegendBlock=mmtLegendBlock, plot = p, pickerDict=colorPicker, 
+            renderer_cb = CustomJS(args=dict(mmtLegendBlock=mmtLegendBlock, originPlot = p, rebinPlot = rebinP, pickerDict=colorPicker, 
                 height=mmtLegendH, width=mmtLegendW, maxLegendNum=maxLegendNum, modelName=name),code="""
                     var blockHeader = (mmtLegendBlock.children)[0].children;
                     var activeBox = blockHeader[2];
@@ -452,7 +632,10 @@ class ZmPlotter(Plotter):
                         if(curLegendNum < maxLegendNum){
                             var modelExists = false;
                             for(var i=1; i<=curLegendNum; i++){
-                                if(legendArr[i].label == modelName) modelExists = true;
+                                if(legendArr[i].label == modelName) {
+                                    modelExists = true;
+                                    break;
+                                }
                             }
                             if(!modelExists){
                                 (legendArr[0].children)[1].active++;
@@ -464,11 +647,11 @@ class ZmPlotter(Plotter):
                                 //legendArr[curLegendNum].width_policy = "fit";
                                 legendArr[curLegendNum].width = width;
                                 mmtLegendBlock.change.emit();
-
-                                //update mmtplot
                                 var mmtBoxName = (legendArr[0].children)[0].label;
                                 var mmtType = (legendArr[0].children)[0].tags[1];
-                                var mmtPlot = plot.select(name=mmtBoxName)[0];
+
+                                //update origin mmtplot
+                                var mmtPlot = originPlot.select(name=mmtBoxName)[0];
                                 var mmtModel = mmtPlot.data_source;
                                 //var mmtPos = modelNum + boxIndex;
                                 //var mmtIndex = legendLayout.items[mmtPos].tags[0];
@@ -476,7 +659,7 @@ class ZmPlotter(Plotter):
                                 //var mmtModel = mmtModelArr[mmtIndex];
                                 var yArr = (mmtModel.data)['y'];
                                 
-                                var legendY = plot.select(name=modelName)[0].data_source.data['y'];
+                                var legendY = originPlot.select(name=modelName)[0].data_source.data['y'];
                                 if(mmtType == 0){
                                     for (var i=0; i<yArr.length; i++){
                                         yArr[i] = (yArr[i]*(curLegendNum-1)+legendY[i])/curLegendNum;
@@ -484,7 +667,7 @@ class ZmPlotter(Plotter):
                                 }else if(mmtType == 1){
                                     var dataYArr = [legendY];
                                     for(var i=1; i<curLegendNum; i++){
-                                        var curDataYArr = plot.select(name=legendArr[i].label)[0].data_source.data['y'];
+                                        var curDataYArr = originPlot.select(name=legendArr[i].label)[0].data_source.data['y'];
                                         dataYArr.push(curDataYArr);
                                     }
                                     for (var i=0; i<yArr.length; i++){
@@ -499,7 +682,7 @@ class ZmPlotter(Plotter):
                                 }else if(mmtType == 2){
                                     var dataYArr = [legendY];
                                     for(var i=1; i<curLegendNum; i++){
-                                        var curDataYArr = plot.select(name=legendArr[i].label)[0].data_source.data['y'];
+                                        var curDataYArr = originPlot.select(name=legendArr[i].label)[0].data_source.data['y'];
                                         dataYArr.push(curDataYArr);
                                     }
                                     for (var i=0; i<yArr.length; i++){
@@ -552,6 +735,93 @@ class ZmPlotter(Plotter):
                                 mmtModel.change.emit();
                                 mmtPlot.visible = true;
                                 mmtPlot.change.emit();
+
+                                //update rebin mmtplot
+                                var rebinMmtPlot = rebinPlot.select(name="rebin_"+mmtBoxName)[0];
+                                var rebinMmtModel = rebinMmtPlot.data_source;
+                                //var mmtPos = modelNum + boxIndex;
+                                //var mmtIndex = legendLayout.items[mmtPos].tags[0];
+                                //var mmtPlot = legendLayout.items[mmtPos].renderers[0];
+                                //var mmtModel = mmtModelArr[mmtIndex];
+                                var yArr = (rebinMmtModel.data)['y'];
+                                
+                                var legendY = rebinPlot.select(name="rebin_"+modelName)[0].data_source.data['y'];
+                                if(mmtType == 0){
+                                    for (var i=0; i<yArr.length; i++){
+                                        yArr[i] = (yArr[i]*(curLegendNum-1)+legendY[i])/curLegendNum;
+                                    }
+                                }else if(mmtType == 1){
+                                    var dataYArr = [legendY];
+                                    for(var i=1; i<curLegendNum; i++){
+                                        var curDataYArr = rebinPlot.select(name="rebin_"+legendArr[i].label)[0].data_source.data['y'];
+                                        dataYArr.push(curDataYArr);
+                                    }
+                                    for (var i=0; i<yArr.length; i++){
+                                        var dataXArr = [];
+                                        for(var j=0; j<curLegendNum; j++){
+                                            dataXArr.push(dataYArr[j][i]);
+                                        }
+                                        dataXArr.sort();
+                                        yArr[i] = curLegendNum%2 ? dataXArr[(curLegendNum-1)/2]:
+                                                    (dataXArr[curLegendNum/2-1] + dataXArr[curLegendNum/2])/2;
+                                    }
+                                }else if(mmtType == 2){
+                                    var dataYArr = [legendY];
+                                    for(var i=1; i<curLegendNum; i++){
+                                        var curDataYArr = rebinPlot.select(name="rebin_"+legendArr[i].label)[0].data_source.data['y'];
+                                        dataYArr.push(curDataYArr);
+                                    }
+                                    for (var i=0; i<yArr.length; i++){
+                                        var dataXArr = [];
+                                        for(var j=0; j<curLegendNum; j++){
+                                            dataXArr.push(dataYArr[j][i]);
+                                        }
+                                        //calculate trend with least squared fit
+                                        if(curLegendNum == 1) {
+                                            yArr[i] = dataXArr[0];
+                                            continue;
+                                        }else if(curLegendNum == 2) {
+                                            yArr[i] = (dataXArr[0]+dataXArr[1])/2;
+                                            continue;
+                                        }
+                                        var scaleY = 10000;
+                                        var offsetY = dataYArr[0][0];
+                                        var factor = 60;
+                                        var count = 0;
+                                        var sumX = 0;
+                                        var sumX2 = 0;
+                                        var sumX3 = 0;
+                                        var sumX4 = 0;
+                                        var sumY = 0;
+                                        var sumXY = 0;
+                                        var sumX2Y = 0;
+                                        for (var x = 0; x < dataXArr.length; x++)
+                                        {
+                                            count++;
+                                            sumX += x;
+                                            sumX2 += x*x;
+                                            sumX3 += x*x*x;
+                                            sumX4 += x*x*x*x;
+                                            sumY += dataXArr[x];
+                                            sumXY += x*dataXArr[x];
+                                            sumX2Y += x*x*dataXArr[x];
+                                        }
+                                        //var det = count * sumX2 - sumX * sumX;
+                                        //var offset = (sumX2 * sumY - sumX * sumXY) / det;
+                                        //var scale = (count * sumXY - sumX * sumY) / det;
+                                        //yArr[i] = offset + factor * scale;
+                                        //continue;
+                                        var det = count*sumX2*sumX4 - count*sumX3*sumX3 - sumX*sumX*sumX4 + 2*sumX*sumX2*sumX3 - sumX2*sumX2*sumX2;
+                                        var offset = sumX*sumX2Y*sumX3 - sumX*sumX4*sumXY - sumX2*sumX2*sumX2Y + sumX2*sumX3*sumXY + sumX2*sumX4*sumY - sumX3*sumX3*sumY;
+                                        var scale = -count*sumX2Y*sumX3 + count*sumX4*sumXY + sumX*sumX2*sumX2Y - sumX*sumX4*sumY - sumX2*sumX2*sumXY + sumX2*sumX3*sumY;
+                                        var accel = sumY*sumX*sumX3 - sumY*sumX2*sumX2 - sumXY*count*sumX3 + sumXY*sumX2*sumX - sumX2Y*sumX*sumX + sumX2Y*count*sumX2;
+                                        yArr[i] = (offset + factor*scale + factor*factor*accel)/det/scaleY+offsetY;
+                                    }
+                                }
+                                rebinMmtModel.change.emit();
+                                rebinMmtPlot.visible = true;
+                                rebinMmtPlot.change.emit();
+
                                 cb_obj.visible = false;
                             }
                         }
@@ -568,59 +838,83 @@ class ZmPlotter(Plotter):
                     picker.change.emit();
                 """)
             renderer.js_on_change('visible', renderer_cb)  # 'muted'
+            rebinRenderer.js_on_change('visible', renderer_cb)  # 'muted'
+
             picker = ColorPicker(title=name, css_classes = ["color_picker_" + name], visible=False, disabled = True)
             picker.js_link('color', renderer.glyph, 'line_color')
+            picker.js_link('color', rebinRenderer.glyph, 'line_color')
             colorPicker[name] = picker
             legendLayout.items.append(item)
+            rebinLegendLayout.items.append(rebinItem)
 
+        #self.setup_rebin_axis(rebinP)
+        rebinP.toolbar.autohide = True
         self.setup_axis(p)
         p.toolbar.autohide = True
         self.setup_legends(p, legendLayout)
-        sliderLayout = self.setup_slider_layout(p, legendLayout, mmtLegendBlock, colorPicker, dataRebin)
+        self.setup_legends(rebinP, rebinLegendLayout)
+        slider = Slider(start=1, end=self.xLength / 10 + 1, value=1, step=1, title="smooth factor", css_classes = ["boxcar_factor"])
+        sliderLayout = self.setup_slider_layout(slider, p,rebinP, legendLayout,rebinLegendLayout, mmtLegendBlock, colorPicker, dataRebin, rebinOriginData)
 
-        rebinCallback = CustomJS(args=dict(mmtLegendBlock=mmtLegendBlock, plot = p, legends=legendLayout.items, 
-            modelDict = self.nameModelDict, modelNum=self.modelNum, modelMonthNum = self.modelMonthNum, 
-            maxBoxNum=maxBoxNum),code="""
-            // TODO: rewrite, switch the origin lines to rebin lines
+        ###################################----REBIN / ORIGIN----###################################
 
-                //reset boxcar factor to 1.
-
-                //
+        rebinCallback = CustomJS(args=dict(mmtLegendBlock=mmtLegendBlock, originPlot = p, rebinPlot = rebinP, 
+            legends=legendLayout.items, modelDict = self.nameModelDict, 
+            rebinLegends = rebinLegendLayout.items, rebinModelDict = rebinOriginData,
+            modelNum=self.modelNum, modelMonthNum = self.modelMonthNum, 
+            slider = slider, pickerDict=colorPicker),code="""
+                
+                slider.value = 1;
+                //reset color picker
+                for(let pickerName in pickerDict){
+                    var picker = pickerDict[pickerName];
+                    picker.disabled=true;
+                    picker.visible=false;
+                    picker.change.emit();
+                }
                 var copyDictX = {};
                 var copyDictY = {};
                 var isRebin = (cb_obj.origin.label==cb_obj.origin.tags[0]);
+                var plot = originPlot;
                 if(isRebin){
+                    slider.end = slider.end/3;
+                    plot = rebinPlot;
+                    originPlot.visible = false;
+                    rebinPlot.visible = true;
+                    rebinPlot.change.emit();
+                    originPlot.change.emit();
                     cb_obj.origin.label = cb_obj.origin.tags[1];
                     //rebin model data, and update the lines with rebin data
                     for(var k = 0; k <modelNum; k++){
-                        var legend = legends[k];
+                        var legend = rebinLegends[k];
                         var modelName = legend.label.value;
-                        var originDataY = modelDict[modelName]['y'];
-                        var originDataX = modelDict[modelName]['x'];
+                        var originDataY = rebinModelDict[modelName]['y'];
+                        var originDataX = rebinModelDict[modelName]['x'];
                         var originDataLen = originDataY.length;
                         var lineData = legend.renderers[0].data_source;
                         var dataY = lineData.data['y'];
                         var dataX = lineData.data['x'];
-                        var dataLen = dataY.length;
-                        dataX.shape[0]=131;
-                        console.log(dataX);
-                        dataY.splice(0,dataLen);
-                        dataX.splice(0,dataLen);
+                        //var dataLen = dataY.length;
+                        //dataX.shape[0]=131;
+                        //dataY.splice(0,dataLen);
+                        //dataX.splice(0,dataLen);
                         //calculate rebin
                         for(var i=0; i<originDataLen; i++){
-                            dataX.push(originDataX[i]);
-                            var monthSum = 0;
-                            for(var m=0; m<modelMonthNum; m++, i++){
-                                monthSum += originDataY[i];
-                            }
-                            dataY.push(monthSum/modelMonthNum);
+                            dataY[i] = originDataY[i];
                         }
                         copyDictY[modelName] = dataY;
                         copyDictX[modelName] = dataX;
                         lineData.change.emit();
                     }
                 }else{
+                    
+                    originPlot.visible = true;
+                    rebinPlot.visible = false;
+                    rebinPlot.change.emit();
+                    originPlot.change.emit();
+                    slider.end = slider.end*3;
                     cb_obj.origin.label = cb_obj.origin.tags[0];
+
                     //update the lines with model data
                     for(var k = 0; k <modelNum; k++){
                         var legend = legends[k];
@@ -631,56 +925,54 @@ class ZmPlotter(Plotter):
                         var lineData = legend.renderers[0].data_source;
                         var dataY = lineData.data['y'];
                         var dataX = lineData.data['x'];
-                        var dataLen = dataY.length;
-                        dataY.splice(0,dataLen);
-                        dataX.splice(0,dataLen);
+                        //var dataLen = dataY.length;
+                        //dataY.splice(0,dataLen);
+                        //dataX.splice(0,dataLen);
                         for(var i=0; i<originDataLen; i++){
-                            dataY.push(originDataY[i]);
-                            dataX.push(originDataX[i]);
+                            dataY[i] = originDataY[i];
+                            //dataY.push(originDataY[i]);
+                            //dataX.push(originDataX[i]);
                         }
                         copyDictY[modelName] = dataY;
                         copyDictX[modelName] = dataX;
                         lineData.change.emit();
                     }
                 }
-                
+                //reset boxcar factor to 1.
+                slider.change.emit();
                 //modify mmt data, with mean/median/trend based on modified model data
-                var firstModelName = legend[0].label.value;
-                //TODO: format the x value in year
-                var copyX = copyDictX[firstModelName];
-                var copyXLen = copyX.length;
-                var copyFirstY = copyDictX[firstModelName];
+                var firstModelName = legends[0].label.value;
+                var copyFirstY = copyDictY[firstModelName];
                 var blockHeader = (mmtLegendBlock.children)[0].children;
+                var curBoxNum = blockHeader[1].active;
                 var boxArr = (mmtLegendBlock.children)[1].children;
-                for(var k = 0; k <maxBoxNum; k++){
+                for(var k = 0; k <curBoxNum; k++){
                     var legendArr = boxArr[k].children;
                     var curLegendNum = legendArr[0].children[1].active;
                     var mmtBoxName = (legendArr[0].children)[0].label;
                     var mmtType = (legendArr[0].children)[0].tags[1];
-                    var mmtPlot = plot.select(name=mmtBoxName)[0];
+                    // update mmt plot
+                    var name = isRebin? ("rebin_"+mmtBoxName) : mmtBoxName;
+                    var mmtPlot = plot.select(name=name)[0];
                     var mmtModel = mmtPlot.data_source;
                     var yArr = (mmtModel.data)['y'];
                     var xArr = (mmtModel.data)['x'];
-                    var yArrLen = yArr.length;
-                    yArr.splice(0,yArrLen);
-                    xArr.splice(0,yArrLen);
                     if(mmtType == 0){
                         var dataYArr = [];
                         for(var i=1; i<=curLegendNum; i++){
                             var curDataYArr = copyDictY[legendArr[i].label];
                             dataYArr.push(curDataYArr);
                         }
-                        for (var i=0; i<copyXLen; i++){
+                        for (var i=0; i<yArr.length; i++){
                             var dataXSum = 0;
                             for(var j=0; j<curLegendNum; j++){
                                 dataXSum += dataYArr[j][i];
                             }
-                            xArr.push(copyX[i]);
                             if(curLegendNum == 0) {
-                                yArr.push(copyFirstY[0]);
+                                yArr[i]=copyFirstY[0];
                                 continue;
                             }
-                            yArr.push(dataXSum/curLegendNum);
+                            yArr[i]=dataXSum/curLegendNum;
                         }
                     }else if(mmtType == 1){
                         var dataYArr = [];
@@ -688,19 +980,18 @@ class ZmPlotter(Plotter):
                             var curDataYArr = copyDictY[legendArr[i].label];
                             dataYArr.push(curDataYArr);
                         }
-                        for (var i=0; i<copyXLen; i++){
+                        for (var i=0; i<yArr.length; i++){
                             var dataXArr = [];
                             for(var j=0; j<curLegendNum; j++){
                                 dataXArr.push(dataYArr[j][i]);
                             }
-                            xArr.push(copyX[i]);
                             if(curLegendNum == 0) {
-                                yArr.push(copyFirstY[0]);
+                                yArr[i]=copyFirstY[0];
                                 continue;
                             }
                             dataXArr.sort();
-                            yArr.push(curLegendNum%2 ? dataXArr[(curLegendNum-1)/2]:
-                                        (dataXArr[curLegendNum/2-1] + dataXArr[curLegendNum/2])/2);
+                            yArr[i]=curLegendNum%2 ? dataXArr[(curLegendNum-1)/2]:
+                                        (dataXArr[curLegendNum/2-1] + dataXArr[curLegendNum/2])/2;
                         }
                     }else if(mmtType == 2){
                         var dataYArr = [];
@@ -708,21 +999,20 @@ class ZmPlotter(Plotter):
                             var curDataYArr = copyDictY[legendArr[i].label];
                             dataYArr.push(curDataYArr);
                         }
-                        for (var i=0; i<copyXLen; i++){
+                        for (var i=0; i<yArr.length; i++){
                             var dataXArr = [];
                             for(var j=0; j<curLegendNum; j++){
                                 dataXArr.push(dataYArr[j][i]);
                             }
-                            xArr.push(copyX[i]);
                             //calculate trend with least squared fit
                             if(curLegendNum == 0) {
-                                yArr.push(copyFirstY[0]);
+                                yArr[i]=copyFirstY[0];
                                 continue;
                             }else if(curLegendNum == 1) {
-                                yArr.push(dataXArr[0]);
+                                yArr[i]=dataXArr[0];
                                 continue;
                             }else if(curLegendNum == 2) {
-                                yArr.push((dataXArr[0]+dataXArr[1])/2);
+                                yArr[i]=(dataXArr[0]+dataXArr[1])/2;
                                 continue;
                             }
                             var scaleY = 10000;
@@ -750,13 +1040,13 @@ class ZmPlotter(Plotter):
                             //var det = count * sumX2 - sumX * sumX;
                             //var offset = (sumX2 * sumY - sumX * sumXY) / det;
                             //var scale = (count * sumXY - sumX * sumY) / det;
-                            //yArr.push(offset + factor * scale);
+                            //yArr[i]=offset + factor * scale;
                             //continue;
                             var det = count*sumX2*sumX4 - count*sumX3*sumX3 - sumX*sumX*sumX4 + 2*sumX*sumX2*sumX3 - sumX2*sumX2*sumX2;
                             var offset = sumX*sumX2Y*sumX3 - sumX*sumX4*sumXY - sumX2*sumX2*sumX2Y + sumX2*sumX3*sumXY + sumX2*sumX4*sumY - sumX3*sumX3*sumY;
                             var scale = -count*sumX2Y*sumX3 + count*sumX4*sumXY + sumX*sumX2*sumX2Y - sumX*sumX4*sumY - sumX2*sumX2*sumXY + sumX2*sumX3*sumY;
                             var accel = sumY*sumX*sumX3 - sumY*sumX2*sumX2 - sumXY*count*sumX3 + sumXY*sumX2*sumX - sumX2Y*sumX*sumX + sumX2Y*count*sumX2;
-                            yArr.push((offset + factor*scale + factor*factor*accel)/det/scaleY+offsetY);
+                            yArr[i]=(offset + factor*scale + factor*factor*accel)/det/scaleY+offsetY;
                         }
                     }
                     mmtModel.change.emit();
@@ -770,19 +1060,24 @@ class ZmPlotter(Plotter):
 
         return layout if self.output == OutputFormat.json else p
 
-    def setup_slider_layout(self, plot, legendLayout, mmtLegendBlock, colorPicker,dataRebin):
-        sampleModel = list(self.modelDict.values())[0]
-        timeLen = len(sampleModel.get_val_cds()['x'])
-        maxLen = timeLen / 10 + 1
-        callback = CustomJS(args=dict(mmtLegendBlock=mmtLegendBlock, plot = plot, legends=legendLayout.items, 
-            modelDict = self.nameModelDict, modelNum=self.modelNum),code="""
-
+    # boxcar layout
+    def setup_slider_layout(self,slider, plot,rebinPlot, legendLayout,rebinLegendLayout, mmtLegendBlock, colorPicker,dataRebin,rebinOriginData):
+        callback = CustomJS(args=dict(mmtLegendBlock=mmtLegendBlock, originPlot = plot, rebinPlot = rebinPlot,
+            originLegends=legendLayout.items, rebinLegends = rebinLegendLayout.items, rebinModelDict = rebinOriginData,
+            modelDict = self.nameModelDict, modelNum=self.modelNum, dataRebin = dataRebin),code="""
+                var isRebin = (dataRebin.label!=dataRebin.tags[0]);
+                var plot = originPlot;
+                var legends = originLegends;
+                if(isRebin) {
+                    plot = rebinPlot;
+                    legends = rebinLegends;
+                }
                 //modify model data, with boxcar based on origin data
                 var copyDict = {};
                 for(var k = 0; k <modelNum; k++){
                     var legend = legends[k];
                     var modelName = legend.label.value;
-                    var originDataY = modelDict[modelName]['y'];
+                    var originDataY = isRebin?rebinModelDict[modelName]['y']:modelDict[modelName]['y'];
                     var lineData = legend.renderers[0].data_source;
                     var dataY = lineData.data['y'];
                     //calculate box car
@@ -815,7 +1110,8 @@ class ZmPlotter(Plotter):
                     var curLegendNum = legendArr[0].children[1].active;
                     var mmtBoxName = (legendArr[0].children)[0].label;
                     var mmtType = (legendArr[0].children)[0].tags[1];
-                    var mmtPlot = plot.select(name=mmtBoxName)[0];
+                    var name = isRebin? ("rebin_"+mmtBoxName) : mmtBoxName;
+                    var mmtPlot = plot.select(name=name)[0];
                     var mmtModel = mmtPlot.data_source;
                     var yArr = (mmtModel.data)['y'];
                     
@@ -916,11 +1212,12 @@ class ZmPlotter(Plotter):
                     mmtPlot.change.emit();
                 }
                 """)
-        slider = Slider(start=1, end=maxLen, value=1, step=1, title="smooth factor", css_classes = ["boxcar_factor"])
         slider.js_on_change('value', callback)
         colorPickerBar = row(list(colorPicker.values()))
-        return column(row(dataRebin, slider, colorPickerBar) ,plot)
+        plotCol = column(rebinPlot, plot)
+        return column(row(dataRebin, slider, colorPickerBar), plotCol)
 
+    # mmt box
     def setup_mmt_legendboxArr(self, maxBoxNum, maxLegendNum):
         legendNum = ["number" for i in range(maxLegendNum)]
         mmtLegendBoxArr = []
@@ -940,19 +1237,31 @@ class ZmPlotter(Plotter):
             mmtLegendBoxArr.append(column(legendArr))
         return row(mmtLegendBoxArr)
 
-    def plot_mmt(self, maxBoxNum, plot, pickerDict):
+    # mmt in plot
+    def plot_mmt(self, rebinOriginData, maxBoxNum, plot, rebinPlot, pickerDict):
         mmtPalette = Spectral11[0:maxBoxNum]
+
         sampleModel = list(self.modelDict.values())[0]
         data = sampleModel.get_val_cds()
-        modelArr = []
         plotArr = []
+        rebinData = list(rebinOriginData.values())[0]
+        rebinPlotArr = []
         for mmtIndex in range(maxBoxNum):
+            # build mmt data and line
             yArr = np.zeros(len(data['x']))
-            yArr[:] = data['y'][0]
+            yArr[:] = data['y'][0] - mmtIndex
             modelDict = {'x': data['x'], 'y': yArr}
             mmtModel = ColumnDataSource(data=modelDict)
             mmtPlot = plot.line('x', 'y', source=mmtModel, line_dash="4 0", line_width=2, tags = [str(mmtIndex)],
                                 line_color=mmtPalette[mmtIndex], line_alpha=0.6, visible=False)
+            # build rebin mmt data and line
+            rebinYArr = np.zeros(len(rebinData['x']))
+            rebinYArr[:] = rebinData['y'][0] - mmtIndex
+            rebinModelDict = {'x': rebinData['x'], 'y': rebinYArr}
+            rebinMmtModel = ColumnDataSource(data=rebinModelDict)
+            rebinMmtPlot = rebinPlot.line('x', 'y', source=rebinMmtModel, line_dash="4 0", line_width=2, tags = [str(mmtIndex)],
+                                line_color=mmtPalette[mmtIndex], line_alpha=0.6, visible=False)
+
             mmtPlot_cb = CustomJS(args=dict(pickerDict=pickerDict, modelName=str(mmtIndex)),code="""
                     for(let pickerName in pickerDict){
                         var picker = pickerDict[pickerName];
@@ -968,24 +1277,33 @@ class ZmPlotter(Plotter):
                     
                 """)
             mmtPlot.js_on_change('visible', mmtPlot_cb)  # 'muted'
-            mmtLegend = LegendItem(
-                label='', tags=[mmtIndex], renderers=[mmtPlot])
-            modelArr.append(mmtModel)
+            rebinMmtPlot.js_on_change('visible', mmtPlot_cb)  # 'muted'
+
+            mmtLegend = LegendItem(label='', tags=[mmtIndex], renderers=[mmtPlot])
             plotArr.append(mmtLegend)
+
+            rebinMmtLegend = LegendItem(label='', tags=[mmtIndex], renderers=[rebinMmtPlot])
+            rebinPlotArr.append(rebinMmtLegend)
+
             picker = ColorPicker(title=str(mmtIndex), css_classes = ["color_picker_" + str(mmtIndex)], visible=False, disabled = True)
             picker.js_link('color', mmtPlot.glyph, 'line_color')
+            picker.js_link('color', rebinMmtPlot.glyph, 'line_color')
             pickerDict[str(mmtIndex)] = picker
-        return {'mmtModelArr': modelArr, 'mmtPlotArr': plotArr}
+        return {'mmtPlotArr': plotArr, 'rebinMmtPlotArr': rebinPlotArr}
 
-    def plot_model(self, plot, model, color):
-        modelName = model.get_name()
+
+    def plot_model(self, plot, name, model, color):
         #color = model.get_para_color()
         highlighted = model.get_para_highlighted()
         muted_alpha = 0.8 * float(highlighted) + 0.2
         data = model.copy_val_cds()
         #data['y'] = self.boxcar_mirror(10, data['y'])
-        return plot.line(data['x'], data['y'], line_dash="4 0", line_width=1, name = modelName,
+        return plot.line(data['x'], data['y'], line_dash="4 0", line_width=1, name = name,
                          line_color=color, line_alpha=0.5, muted_color=color, muted_alpha=muted_alpha)
+
+    def plot_model_data(self, plot, name, data, color):
+        return plot.line(data['x'], data['y'], line_dash="4 0", line_width=1, name = name,
+                         line_color=color, line_alpha=0.5, muted_color=color)
 
     def setup_legends(self, plot, legendLayout):
         # title
@@ -1111,6 +1429,30 @@ class ZmPlotter(Plotter):
         plot.xaxis.major_label_orientation = pi / 4
         plot.yaxis.major_label_orientation = "vertical"
 
+    def setup_rebin_axis(self, plot):
+        # axis
+        plot.xaxis.axis_line_width = 2
+        plot.xaxis.axis_line_color = "black"
+        # axis label
+        # plot.xaxis.axis_label = "Time"
+        # plot.xaxis.axis_label_text_color = "#aa6666"
+        # plot.xaxis.axis_label_standoff = 30
+        plot.yaxis.axis_label = self.plotType.name
+        plot.yaxis.axis_label_text_font_style = "italic"
+        # tick line
+        plot.xaxis.major_tick_line_color = "orange"
+        plot.xaxis.major_tick_line_width = 3
+        plot.xaxis.minor_tick_line_color = "black"
+        plot.yaxis.minor_tick_line_width = 2
+        plot.yaxis.minor_tick_line_color = "firebrick"
+        plot.axis.major_tick_out = 10
+        plot.axis.minor_tick_in = -3
+        plot.axis.minor_tick_out = 8 
+        
+        plot.yaxis.major_label_text_color = "orange"
+        # orientation
+        plot.xaxis.major_label_orientation = pi / 4
+        plot.yaxis.major_label_orientation = "vertical"
 
 class Tco3ZmPlotter(ZmPlotter):
     pass

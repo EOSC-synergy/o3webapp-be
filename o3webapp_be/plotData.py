@@ -79,6 +79,10 @@ class PlotData:
     def get_modeldata_list(self):
         return self.modelData.get_model_list()
 
+    def get_x_count(self):
+        sampleModel = self.modelData.get_model_list()[0]
+        return sampleModel.get_val_length()
+
     def print(self):
         print(self.ptype)
         print(self.varData)
@@ -175,6 +179,9 @@ class Model:
     def get_val_cds(self):
         return self.val.get_cds()
 
+    def get_val_length(self):
+        return self.val.get_length()
+
     def copy_val_cds(self):
         return self.val.copy_cds()
 
@@ -209,6 +216,9 @@ class ModelVal:
 
     def get_cds(self):
         return self.cds.data
+
+    def get_length(self):
+        return len(self.cds.data[self.get_coord()[0]])
         
     def copy_cds(self):
         return copy.deepcopy(self.cds.data)
