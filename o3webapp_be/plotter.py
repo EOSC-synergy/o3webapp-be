@@ -35,9 +35,12 @@ class Plotter(ABC):
     @abstractmethod
     def plot_data(self, plotdata):
         pass
-
+    # TODO move to zmplotter.
     def init_plotter(self, plotdata):
         self.modelDict = plotdata.get_modeldata_dict()
+        
+    # new method: to_date_time()  for converting x to date time
+    # new method: interpolate_data()  called in to_date_time()   for interpolate data at NaN 
         for name, model in self.modelDict.items():
             data = model.get_val_cds()
             df = pd.DataFrame(data=data)
@@ -45,6 +48,7 @@ class Plotter(ABC):
             modelDict = {'x': df['x'], 'y': df['y']}
             cdsModel = ColumnDataSource(data=modelDict)
             model.reset_val_cds(cdsModel)
+        
         self.nameModelDict = plotdata.get_name_model_dict()
         self.modelList = plotdata.get_modeldata_list()
         self.modelNum = plotdata.get_modeldata_num()
@@ -853,16 +857,40 @@ class ZmPlotter(Plotter):
         p.toolbar.autohide = True
         self.setup_legends(p, legendLayout)
         self.setup_legends(rebinP, rebinLegendLayout)
-        slider = Slider(start=1, end=self.xLength / 10 + 1, value=1, step=1, title="smooth factor", css_classes = ["boxcar_factor"])
-        sliderLayout = self.setup_slider_layout(slider, p,rebinP, legendLayout,rebinLegendLayout, mmtLegendBlock, colorPicker, dataRebin, rebinOriginData)
+        slider = Slider(start=1, end=self.xLength // 10 + self.modelMonthNum, value=1, step=1, title="smooth factor", css_classes = ["boxcar_factor"])
+        reference = Button(label="reference", tags=['reference','choose_year','choose_model','',''], css_classes = ["reference"], visible=False)
+        sliderLayout = self.setup_slider_layout(slider, p,rebinP, 
+                        legendLayout,rebinLegendLayout, mmtLegendBlock, colorPicker, dataRebin, rebinOriginData, reference)
 
+        ###################################----REFERENCE----###################################
+        refCallback = CustomJS(args=dict(mmtLegendBlock=mmtLegendBlock, rebinPlot = rebinP, slider = slider, pickerDict=colorPicker),code="""
+                var refState = cb_obj.origin.label;
+                switch(refState){
+                    case cb_obj.origin.tags[0]:
+                        //reference -> choose year
+                        cb_obj.origin.label = cb_obj.origin.tags[1];
+                        break;
+                    case cb_obj.origin.tags[1]:
+                        //choose year -> choose model
+                        break;
+                    case cb_obj.origin.tags[2]:
+                        //choose model -> shift lines
+                        break;
+                    default:
+                        //TODO : reset to the rebin
+                        cb_obj.origin.label = cb_obj.origin.tags[0];
+                        break;
+                }
+
+            """)
+        reference.js_on_click(refCallback)
         ###################################----REBIN / ORIGIN----###################################
 
         rebinCallback = CustomJS(args=dict(mmtLegendBlock=mmtLegendBlock, originPlot = p, rebinPlot = rebinP, 
             legends=legendLayout.items, modelDict = self.nameModelDict, 
             rebinLegends = rebinLegendLayout.items, rebinModelDict = rebinOriginData,
             modelNum=self.modelNum, modelMonthNum = self.modelMonthNum, 
-            slider = slider, pickerDict=colorPicker),code="""
+            slider = slider, pickerDict=colorPicker, reference = reference),code="""
                 
                 slider.value = 1;
                 //reset color picker
@@ -877,6 +905,7 @@ class ZmPlotter(Plotter):
                 var isRebin = (cb_obj.origin.label==cb_obj.origin.tags[0]);
                 var plot = originPlot;
                 if(isRebin){
+                    reference.visible = true;
                     slider.end = slider.end/3;
                     plot = rebinPlot;
                     originPlot.visible = false;
@@ -907,7 +936,9 @@ class ZmPlotter(Plotter):
                         lineData.change.emit();
                     }
                 }else{
-                    
+                    //TODO : reset reference, disable the horizontal line
+                    reference.label = reference.tags[0];
+                    reference.visible = false;
                     originPlot.visible = true;
                     rebinPlot.visible = false;
                     rebinPlot.change.emit();
@@ -1061,7 +1092,7 @@ class ZmPlotter(Plotter):
         return layout if self.output == OutputFormat.json else p
 
     # boxcar layout
-    def setup_slider_layout(self,slider, plot,rebinPlot, legendLayout,rebinLegendLayout, mmtLegendBlock, colorPicker,dataRebin,rebinOriginData):
+    def setup_slider_layout(self,slider, plot,rebinPlot, legendLayout,rebinLegendLayout, mmtLegendBlock, colorPicker,dataRebin,rebinOriginData, reference):
         callback = CustomJS(args=dict(mmtLegendBlock=mmtLegendBlock, originPlot = plot, rebinPlot = rebinPlot,
             originLegends=legendLayout.items, rebinLegends = rebinLegendLayout.items, rebinModelDict = rebinOriginData,
             modelDict = self.nameModelDict, modelNum=self.modelNum, dataRebin = dataRebin),code="""
@@ -1215,7 +1246,7 @@ class ZmPlotter(Plotter):
         slider.js_on_change('value', callback)
         colorPickerBar = row(list(colorPicker.values()))
         plotCol = column(rebinPlot, plot)
-        return column(row(dataRebin, slider, colorPickerBar), plotCol)
+        return column(row(dataRebin,reference, slider, colorPickerBar), plotCol)
 
     # mmt box
     def setup_mmt_legendboxArr(self, maxBoxNum, maxLegendNum):

@@ -40,7 +40,7 @@ class ModelsInfoRequestor(InfoUpdateRequestor):
 class ModelInfoRequestor(ModelsInfoRequestor):
     def __init__(self, modelName):
         super().__init__()
-        self.url += modelName
+        self.url += '/' + modelName
 
 class PlotypesRequestor(InfoUpdateRequestor):
     def __init__(self):
