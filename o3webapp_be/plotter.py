@@ -80,9 +80,7 @@ class ZmPlotter(Plotter):
             data = model.get_val_cds()
             df = pd.DataFrame(data=data)
             df['x'] = pd.to_datetime(df['x'])
-            #print(df)
-            #self.interpolate_data(df)
-            #print(df)
+            self.interpolate_data(df)
             modelDict = {'x': df['x'], 'y': df['y']}
             cdsModel = ColumnDataSource(data=modelDict)
             model.reset_val_cds(cdsModel)
@@ -90,6 +88,13 @@ class ZmPlotter(Plotter):
     def interpolate_data(self, data):
         dataX = data['x']
         dataY = data['y']
+        #check if there are 0s
+        nanNum = 0
+        for y in dataY:
+            if y <= 0:
+                nanNum = nanNum+1
+        if nanNum == 0:
+            return 
         length = len(dataX)
         prev = 0
         post = 0
@@ -112,8 +117,11 @@ class ZmPlotter(Plotter):
                     elif(end0):
                         y = dataY[prev]
                     else:
-                        y = (dataY[prev]*(post-j)+dataY[post]*(j-prev))/(post-prev)
-                    dataY[j]=y
+                        alphaPrev = (dataX[post]-dataX[j]).days
+                        alphaPost = (dataX[j]-dataX[prev]).days
+                        alphaDiff = (dataX[post]-dataX[prev]).days
+                        y = (dataY[prev]*alphaPrev+dataY[post]*alphaPost)/alphaDiff
+                    data.loc[j, 'y']=y
                 i = post
                 start0 = False
                 end0 = True
@@ -1476,7 +1484,7 @@ class ZmPlotter(Plotter):
         refHDict = {'x': rebinData['x'], 'y': refHYArr}
         refHLine = ColumnDataSource(data=refHDict)
         return rebinPlot.line('x', 'y', source=refHLine, line_dash="1 1", line_width=1, tags = ['refH'],
-                            line_color='black', line_alpha=0.6, visible=False)
+                            line_color='black', line_alpha=0.9, visible=False)
 
     # boxcar layout
     def setup_slider_layout(self,slider, plot,rebinPlot, legendLayout,rebinLegendLayout, 

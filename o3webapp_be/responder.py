@@ -131,14 +131,30 @@ class CSVDownloadResponder(DownloadResponder):
 class ZmCSVDownloadResponder(CSVDownloadResponder):
     
     def build_models_dict(self, plotdata):
-        modelList = plotdata.get_modeldata_list()
         modelsDict = {}
+
+        varData = plotdata.get_vardata_dict()
+        year_begin = varData['begin']
+        year_end = varData['end']
+        month = varData['month']
+        lat_min = varData['lat_min']
+        lat_max = varData['lat_max']
+        varPara = '    year_begin: '+year_begin+', year_end: '+year_end+', lat_min: '+lat_min+', lat_max: '+lat_max+', month: '+month.__str__()
+
+        #modelsDict['year_end'] = varData['end']
+        #modelsDict['month'] = varData['month']
+        #modelsDict['lat_min'] = varData['lat_min']
+        #modelsDict['lat_max'] = varData['lat_max']
+
+        modelList = plotdata.get_modeldata_list()
         firstModelData = modelList[0].get_val_cds()
-        modelsDict['Time'] = firstModelData['x']
+        modelsDict['           Time          '] = firstModelData['x']
         for model in modelList:
             modelName = model.get_name()
             modelData = model.get_val_cds()
             modelsDict[modelName] = modelData['y']
+
+        modelsDict[varPara] = ''
         return modelsDict
         
 class ReturnCSVDownloadResponder(CSVDownloadResponder):
