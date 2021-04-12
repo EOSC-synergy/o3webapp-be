@@ -73,7 +73,10 @@ class PlotDataResponder(Responder):
     def respond_plot(self, data):
         self.output = self.plotdata.get_output()
         self.pType = self.plotdata.get_ptype()
-        return PlotDataResponder.outputFormatDict[self.output](self.pType).respond_plot(data)
+        plotData = data["plot"]
+        if self.output == OutputFormat.json:
+            plotData = data["layout"]# data
+        return PlotDataResponder.outputFormatDict[self.output](self.pType).respond_plot(plotData)
 
 class PlotResponder(PlotDataResponder):
 

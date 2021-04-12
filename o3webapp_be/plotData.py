@@ -98,6 +98,12 @@ class VarData:
     def get_month_num(self):
         return len(self.varDataDict["month"])
 
+    def get_begin_year(self):
+        return int(self.varDataDict["begin"])
+
+    def get_end_year(self):
+        return int(self.varDataDict["end"])
+
     def __str__(self):
         return self.varDataDict.__str__()
 

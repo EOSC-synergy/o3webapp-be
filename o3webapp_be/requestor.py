@@ -67,15 +67,19 @@ class PlotDataRequestor(Requestor):
         self.plotData = plotData
         self.headers = {'Content-Type': 'application/json', 'Accept': 'application/json'}
         self.params = self.prepare_params()
-        self.url += 'plots/' + self.plotData.get_ptype_name() + "?" + self.params 
+        self.url += 'plots/' + self.plotData.get_ptype_name() + "?" + self.params
         r = requests.post(self.url, headers=self.headers)
         return r.json()
 
     def prepare_params(self):
-        varDict = self.plotData.get_vardata_dict()
+        varDict = self.plotData.get_vardata_dict() 
         varParamDict = {}
         varParamDict["model"]=self.merge_array(varDict["model"])
+        varParamDict["begin"]=varDict["begin"]
+        varParamDict["end"]=varDict["end"]
         varParamDict["month"]=self.merge_array(varDict["month"])
+        varParamDict["lat_min"]=varDict["lat_min"]
+        varParamDict["lat_max"]=varDict["lat_max"]
         varStr = self.merge_dict(varParamDict)
         return varStr
     
