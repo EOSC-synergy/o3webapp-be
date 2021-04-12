@@ -1,4 +1,5 @@
 from math import pi
+import math
 import numpy as np
 from scipy import signal
 import pandas as pd
@@ -35,29 +36,6 @@ class Plotter(ABC):
     @abstractmethod
     def plot_data(self, plotdata):
         pass
-    # TODO move to zmplotter.
-    def init_plotter(self, plotdata):
-        self.modelDict = plotdata.get_modeldata_dict()
-        
-    # new method: to_date_time()  for converting x to date time
-    # new method: interpolate_data()  called in to_date_time()   for interpolate data at NaN 
-        for name, model in self.modelDict.items():
-            data = model.get_val_cds()
-            df = pd.DataFrame(data=data)
-            df['x'] = pd.to_datetime(df['x'])
-            modelDict = {'x': df['x'], 'y': df['y']}
-            cdsModel = ColumnDataSource(data=modelDict)
-            model.reset_val_cds(cdsModel)
-        
-        self.nameModelDict = plotdata.get_name_model_dict()
-        self.modelList = plotdata.get_modeldata_list()
-        self.modelNum = plotdata.get_modeldata_num()
-        self.modelMonthNum = plotdata.get_vardata().get_month_num()
-        self.xLength = plotdata.get_x_count()
-        self.beginYear = plotdata.get_vardata().get_begin_year()
-        self.endYear = plotdata.get_vardata().get_end_year()
-        self.plotType = plotdata.get_ptype()
-        self.output = plotdata.get_output()
 
     def boxcar_easy(self, window, data):
         boxcar = np.ones(window)
@@ -83,6 +61,63 @@ class Plotter(ABC):
 
 class ZmPlotter(Plotter):
     mmtLabels = ["mean", "median"]#, "trend"
+    
+    def init_plotter(self, plotdata):
+        self.modelDict = plotdata.get_modeldata_dict()
+        self.beginYear = plotdata.get_vardata().get_begin_year()
+        self.endYear = plotdata.get_vardata().get_end_year()
+        self.to_date_time()
+        self.nameModelDict = plotdata.get_name_model_dict()
+        self.modelList = plotdata.get_modeldata_list()
+        self.modelNum = plotdata.get_modeldata_num()
+        self.modelMonthNum = plotdata.get_vardata().get_month_num()
+        self.xLength = plotdata.get_x_count()
+        self.plotType = plotdata.get_ptype()
+        self.output = plotdata.get_output()
+
+    def to_date_time(self):
+        for name, model in self.modelDict.items():
+            data = model.get_val_cds()
+            df = pd.DataFrame(data=data)
+            df['x'] = pd.to_datetime(df['x'])
+            #print(df)
+            #self.interpolate_data(df)
+            #print(df)
+            modelDict = {'x': df['x'], 'y': df['y']}
+            cdsModel = ColumnDataSource(data=modelDict)
+            model.reset_val_cds(cdsModel)
+    
+    def interpolate_data(self, data):
+        dataX = data['x']
+        dataY = data['y']
+        length = len(dataX)
+        prev = 0
+        post = 0
+        start0 = False
+        end0 = True
+        for i in range(length):
+            if(dataY[i]<=0):
+                if(i==0):
+                    start0 = True
+                prev = i-1
+                post = length
+                for j in range(i+1, length):
+                    if (dataY[j]>0):
+                        post = j
+                        end0 = False
+                        break
+                for j in range(i, post):
+                    if(start0):
+                        y = dataY[post]
+                    elif(end0):
+                        y = dataY[prev]
+                    else:
+                        y = (dataY[prev]*(post-j)+dataY[post]*(j-prev))/(post-prev)
+                    dataY[j]=y
+                i = post
+                start0 = False
+                end0 = True
+
     # modelDict, nameModelDict: origin data
     def rebin_data(self, dataDict):
         rebinDict = {}
@@ -1862,7 +1897,7 @@ class ZmPlotter(Plotter):
             hours=['%m/%d/%Y%Hh', '%m/%d/%Y%Hh'],
             days=['%m/%d/%Y', '%m/%d/%Y'],
             months=['%m. %Y', '%b %Y'],
-            years=['%m. %Y']
+            years=['%Y']#'%m. %Y'
             )
         plot.yaxis.major_label_text_color = "orange"
         # orientation

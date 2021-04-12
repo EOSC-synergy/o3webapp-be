@@ -97,13 +97,13 @@ def handle_request_for_plot(pType):
 #/download/<format> -> download the plot in the given format (CSV, PNG, PDF...)
 @app.route('/download/<format>', methods=['GET', 'POST'])
 def handle_request_for_download(format):
-    try:
+    #try:
         userManager = UserManager(request)
         r = userManager.handle_process_on_plotpage(OpID.plot)
-    except Exception as e:
-        print(e)
-        return jsonify(e.__str__()), 404
-    else:
+    #except Exception as e:
+    #    print(e)
+    #    return jsonify(e.__str__()), 404
+    #else:
         return r
 
 ########################################

@@ -68,19 +68,19 @@ class PlotDataResponder(Responder):
 
     def respond_data(self, data, plotdata):
         self.plotdata=plotdata
-        return self.respond_plot(data)
+        return self.respond_plot(data, plotdata)
 
-    def respond_plot(self, data):
+    def respond_plot(self, data, plotdata):
         self.output = self.plotdata.get_output()
         self.pType = self.plotdata.get_ptype()
-        plotData = data["plot"]
+        dataPlot = data["plot"]
         if self.output == OutputFormat.json:
-            plotData = data["layout"]# data
-        return PlotDataResponder.outputFormatDict[self.output](self.pType).respond_plot(plotData)
+            dataPlot = data["layout"]# TODO data
+        return PlotDataResponder.outputFormatDict[self.output](self.pType).respond_plot(dataPlot, plotdata)
 
 class PlotResponder(PlotDataResponder):
 
-    def respond_plot(self, layout):
+    def respond_plot(self, layout, plotdata):
         #output_file(os.getenv('PLOT_FOLDER')+'o3as_plot.html')
         #show(layout)
         data = json.dumps(json_item(layout))
@@ -90,12 +90,12 @@ class DownloadResponder(PlotDataResponder):
 
     folder_path = os.getenv('PLOT_FOLDER')
 
-    def __init__(self):
+    #def __init__(self):
         #options = webdriver.ChromeOptions()
         #options.add_experimental_option('excludeSwitches', ['enable-logging'])
-        pass
+    #    pass
 
-    def respond_plot(self, plot):
+    def respond_plot(self, plot, plotdata):
         pass
 
 class CSVDownloadResponder(DownloadResponder):
@@ -104,20 +104,20 @@ class CSVDownloadResponder(DownloadResponder):
                 PlotType.vmro3_zm: (lambda : ZmCSVDownloadResponder()),
                 PlotType.tco3_return: (lambda : ReturnCSVDownloadResponder())}
 
-    def build_models_dict(self):
+    def build_models_dict(self, plotdata):
         pass
 
-    def respond_plot(self, plot):
-        #modelDict = self.build_models_dict()
+    def respond_plot(self, plot, plotdata):
+        #modelDict = self.build_models_dict(plotdata)
         #with open(folder_path/'csv/plot.csv', 'w', newline='') as csvfile:
         #    writer = csv.writer(csvfile, delimiter = ' ')
         #    for name, model in modelDict.items():
         #        writer.writerow(model)
 
-        df = pd.DataFrame(self.build_models_dict())
+        df = pd.DataFrame(self.build_models_dict(plotdata))
         df.to_csv(self.folder_path+'csv/plot.csv', encoding='utf-8', index=False)
 
-        #df = pd.DataFrame(self.build_models_dict())
+        #df = pd.DataFrame(self.build_models_dict(plotdata))
         #dfbuffer = StringIO()
         #df.to_csv(dfbuffer, encoding='utf-8', index=False)
         #dfbuffer.seek(0)
@@ -130,8 +130,8 @@ class CSVDownloadResponder(DownloadResponder):
         
 class ZmCSVDownloadResponder(CSVDownloadResponder):
     
-    def build_models_dict(self):
-        modelList = self.plotdata.get_modeldata_list()
+    def build_models_dict(self, plotdata):
+        modelList = plotdata.get_modeldata_list()
         modelsDict = {}
         firstModelData = modelList[0].get_val_cds()
         modelsDict['Time'] = firstModelData['x']
@@ -143,12 +143,12 @@ class ZmCSVDownloadResponder(CSVDownloadResponder):
         
 class ReturnCSVDownloadResponder(CSVDownloadResponder):
     
-    def build_models_dict(self):
+    def build_models_dict(self, plotdata):
         pass
 
 class PDFDownloadResponder(DownloadResponder):
     
-    def respond_plot(self, plot):
+    def respond_plot(self, plot, plotdata):
         plot.background_fill_color = None
         plot.border_fill_color = None
         png = export_png(plot, filename=self.folder_path+"pdf/plot.png")
@@ -163,7 +163,7 @@ class PDFDownloadResponder(DownloadResponder):
 
 class SVGDownloadResponder(DownloadResponder):
     
-    def respond_plot(self, plot):
+    def respond_plot(self, plot, plotdata):
         plot.background_fill_color = None
         plot.border_fill_color = None
         plot.output_backend = "svg"
@@ -174,7 +174,7 @@ class SVGDownloadResponder(DownloadResponder):
 
 class PNGDownloadResponder(DownloadResponder):
     
-    def respond_plot(self, plot):
+    def respond_plot(self, plot, plotdata):
         plot.background_fill_color = None
         plot.border_fill_color = None
         data = export_png(plot, filename=self.folder_path/"png/plot.png")
@@ -184,6 +184,6 @@ class PNGDownloadResponder(DownloadResponder):
 
 class JSONDownloadResponder(DownloadResponder):
     
-    def respond_plot(self, plot):
+    def respond_plot(self, plot, plotdata):
         data = json.dumps(json_item(plot))
         return Response(data, mimetype='application/json')
