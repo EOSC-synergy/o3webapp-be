@@ -79,9 +79,15 @@ class PlotData:
     def get_modeldata_list(self):
         return self.modelData.get_model_list()
 
-    def get_x_count(self):
+    def get_sample_model(self):
         sampleModel = self.modelData.get_model_list()[0]
-        return sampleModel.get_val_length()
+        longLen = 0
+        for model in self.modelData.get_model_list():
+            modelLen = model.get_val_length()
+            if longLen < modelLen:
+                longLen = modelLen
+                sampleModel = model
+        return sampleModel
 
     def print(self):
         print(self.ptype)
