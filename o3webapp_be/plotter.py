@@ -75,6 +75,17 @@ class ZmPlotter(Plotter):
         self.xLength = self.sampleModel.get_val_length()
         self.plotType = plotdata.get_ptype()
         self.output = plotdata.get_output()
+        self.varDict = plotdata.get_vardata_dict()
+
+        self.plot_width = 1280
+        self.plot_height = 640
+        deg_sign= u'\N{DEGREE SIGN}'
+        self.title = (self.plotType.name + ', requested: ' + 
+                     str(self.beginYear) + '..' +
+                     str(self.endYear) + ', ' +
+                     'months: ' + str(self.varDict['month']) + ', ' +
+                     str(self.varDict['lat_min']) + deg_sign + '..' +
+                     str(self.varDict['lat_max']) + deg_sign)
 
     def to_date_time(self):
         for name, model in self.modelDict.items():
@@ -186,12 +197,13 @@ class ZmPlotter(Plotter):
             formatters={'@x': 'printf'},
             mode = 'mouse'
             )
-        p = figure(plot_width=1500, plot_height=500,
-                   title=self.plotType.name, x_axis_type="datetime", visible = True)
+
+        p = figure(plot_width=self.plot_width, plot_height=self.plot_height,
+                   title=self.title, x_axis_type="datetime", visible = True)
         p.add_tools(hoverTool)
 
-        rebinP = figure(plot_width=1500, plot_height=500,
-                   title=self.plotType.name, visible = False)
+        rebinP = figure(plot_width=self.plot_width, plot_height=self.plot_height,
+                   title=self.title, visible = False)
         rebinP.add_tools(WheelZoomTool())
         rebinP.add_tools(rebinHoverTool)
         ###################  mmt block #####################
@@ -229,8 +241,8 @@ class ZmPlotter(Plotter):
 
         # ROW_0 :: rebin                                ##################################
         dataRebin = Button(
-            label="origin", tags=["origin", "rebin"], css_classes = ["data_rebin"], visible=True)
-        refKYear = 0 # over how many years to average for shifting to reference
+            label="original", tags=["original", "rebinned (yearly)"], css_classes = ["data_rebin"], visible=True)
+        refKYear = 5 # over how many years to average for shifting to reference
         reference = Button(label="reference", 
             tags=['reference','choose_model','choose_year','choose_model(on the right)','choose_year(on year axis below the plot)', self.beginYear,'',refKYear], 
             css_classes = ["reference"], visible=False)
@@ -690,13 +702,16 @@ class ZmPlotter(Plotter):
                                 continue;
                             }
                             var localSum = 0;
-                            //var start=Math.max(0, year-kYear-tempBegin);
-                            var start=Math.max(0, year-tempBegin); //vkoz
-                            var end=Math.min(dataY.length, year+kYear-tempBegin);
-                            for(var i=start; i<end; i++){
-                                localSum += dataY[i];
+                            var localRange = 0;
+                            // there might be missing years in the data //vkoz
+                            for(var i=0; i<dataX.length; i++) {
+                                var yy = dataX[i];
+                                if (yy>=year && yy<(year+kYear)){
+                                    localSum += dataY[i];
+                                    localRange += 1;
+                                }                           
                             }
-                            rebinModelValue[curModelName] = localSum/(end-start);
+                            rebinModelValue[curModelName] = localSum/localRange;
                         }
                         var refModelValue=rebinModelValue[model];
                         // shift to the reference
@@ -777,7 +792,8 @@ class ZmPlotter(Plotter):
                                     //    xArr[i].push(legendX[i]);
                                     //}
                                 //}
-                                if(legendX.length == xArr.length){
+                                // we want all models! //vkoz
+                                //-if(legendX.length == xArr.length){
                                     //add legend in the box
                                     (legendArr[0].children)[1].active++;
                                     curLegendNum++;
@@ -990,13 +1006,16 @@ class ZmPlotter(Plotter):
                                             continue;
                                         }
                                         var localSum = 0;
-                                        //var start=Math.max(0, year-kYear-tempBegin);
-                                        var start=Math.max(0, year-tempBegin); //vkoz
-                                        var end=Math.min(dataY.length, year+kYear-tempBegin);
-                                        for(var i=start; i<end; i++){
-                                            localSum += dataY[i];
+                                        var localRange = 0;
+                                        // there might be missing years in the data //vkoz
+                                        for(var i=0; i<dataX.length; i++) {
+                                            var yy = dataX[i];
+                                            if (yy>=year && yy<(year+kYear)){
+                                                localSum += dataY[i];
+                                                localRange += 1;
+                                            }                           
                                         }
-                                        rebinModelValue[curModelName] = localSum/(end-start);
+                                        rebinModelValue[curModelName] = localSum/localRange;
                                     }
                                     var refModelValue=rebinModelValue[model];
                                     // shift to the reference
@@ -1014,7 +1033,7 @@ class ZmPlotter(Plotter):
                                         lineData.change.emit();
                                     }
                                     return;
-                                }
+                                //-} // we want all models! //vkoz
                             }
                         }
                     }
@@ -1123,13 +1142,16 @@ class ZmPlotter(Plotter):
                                 continue;
                             }
                             var localSum = 0;
-                            //var start=Math.max(0, year-kYear-tempBegin);
-                            var start=Math.max(0, year-tempBegin); //vkoz
-                            var end=Math.min(dataY.length, year+kYear-tempBegin);
-                            for(var i=start; i<end; i++){
-                                localSum += dataY[i];
+                            var localRange = 0;
+                            // there might be missing years in the data //vkoz
+                            for(var i=0; i<dataX.length; i++) {
+                                var yy = dataX[i];
+                                if (yy>=year && yy<(year+kYear)){
+                                    localSum += dataY[i];
+                                    localRange += 1;
+                                }                           
                             }
-                            rebinModelValue[modelName] = localSum/(end-start);
+                            rebinModelValue[modelName] = localSum/localRange;
                         }
                         var refModelValue=rebinModelValue[model];
                         //horizontal line
@@ -1714,13 +1736,16 @@ class ZmPlotter(Plotter):
                         continue;
                     }
                     var localSum = 0;
-                    //var start=Math.max(0, year-kYear-tempBegin);
-                    var start=Math.max(0, year-tempBegin); //vkoz
-                    var end=Math.min(dataY.length, year+kYear-tempBegin);
-                    for(var i=start; i<end; i++){
-                        localSum += dataY[i];
+                    var localRange = 0;
+                    // there might be missing years in the data //vkoz
+                    for(var i=0; i<dataX.length; i++) {
+                        var yy = dataX[i];
+                        if (yy>=year && yy<(year+kYear)){
+                           localSum += dataY[i];
+                           localRange += 1;
+                        }                           
                     }
-                    rebinModelValue[modelName] = localSum/(end-start);
+                    rebinModelValue[modelName] = localSum/localRange;
                 }
                 var refModelValue=rebinModelValue[model];
                 //horizontal line

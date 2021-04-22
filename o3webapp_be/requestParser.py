@@ -41,6 +41,7 @@ class TypeModelsVarsParser(InfoParser):
     # extract the needed vars from a complete json file in to a json file for a selected plot type 
     def parse_varsjson_file(self, completeJson, typeName):
         ptype = os.path.join('/', cfg.O3API_DATA, typeName)
+        #-ptype = '/data/' + typeName        
         # TODO select items needed for the chosen plot type
         varPattern = lambda para: {'name': para['name'], 'type': para['type']}
         paraArray = lambda completeJson, ptype: completeJson['paths'][ptype]['post']['parameters']

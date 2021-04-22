@@ -56,7 +56,7 @@ class TypeModelsVarsRequestor(Requestor):
 
     def request_models(self, typeName):
         typeModelsUrl = os.path.join(self.url, cfg.O3API_MODELS_LIST, typeName)
-        #typeModelsUrl = self.url + 'models/list/' + typeName
+        #-typeModelsUrl = self.url + 'models/list/' + typeName
         r = requests.post(typeModelsUrl, headers=self.headers)
         return r.json()
 
@@ -71,9 +71,9 @@ class PlotDataRequestor(Requestor):
         self.headers = {'Content-Type': 'application/json', 'Accept': 'application/json'}
         self.params = self.prepare_params()
         self.url = os.path.join(self.url, cfg.O3API_DATA, 
-                                self.plotData.get_ptype_name(), '?',
-                                self.params)
-        #self.url += 'data/' + self.plotData.get_ptype_name() + "?" + self.params
+                                (self.plotData.get_ptype_name() +
+                                '?' + self.params))
+        #-self.url += 'data/' + self.plotData.get_ptype_name() + "?" + self.params
         r = requests.post(self.url, headers=self.headers)
         return r.json()
 
