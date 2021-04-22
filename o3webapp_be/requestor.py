@@ -2,6 +2,8 @@ import requests
 import json
 import os
 
+import o3webapp_be.config as cfg
+
 from o3webapp_be.plotData import PlotData
 
 ####################################################
@@ -14,7 +16,7 @@ from o3webapp_be.plotData import PlotData
 # Requestor, querying the info or data from O3as-API.
 class Requestor:
     def __init__(self):
-        self.url = os.getenv('O3API_URL')
+        self.url = cfg.O3API_URL
     
     def print_url_request(self):
         return self.url
@@ -30,17 +32,17 @@ class InfoUpdateRequestor(Requestor):
 class APIInfoRequestor(InfoUpdateRequestor):
     def __init__(self):
         super().__init__()
-        self.url += 'api-info'
+        self.url = os.path.join(self.url, cfg.O3API_INFO)
     
 class ModelsInfoRequestor(InfoUpdateRequestor):
     def __init__(self):
         super().__init__()
-        self.url += 'models'
+        self.url = os.path.join(self.url, 'models')
 
 class ModelInfoRequestor(ModelsInfoRequestor):
     def __init__(self, modelName):
         super().__init__()
-        self.url += '/' + modelName
+        self.url = os.path.join(self.url, modelName)
 
 class PlotypesRequestor(InfoUpdateRequestor):
     def __init__(self):
@@ -53,7 +55,8 @@ class TypeModelsVarsRequestor(Requestor):
         self.headers = {'Content-Type': 'application/json', 'Accept': 'application/json'}
 
     def request_models(self, typeName):
-        typeModelsUrl = self.url + 'models/list/' + typeName
+        typeModelsUrl = os.path.join(self.url, cfg.O3API_MODELS_LIST, typeName)
+        #typeModelsUrl = self.url + 'models/list/' + typeName
         r = requests.post(typeModelsUrl, headers=self.headers)
         return r.json()
 
@@ -67,7 +70,10 @@ class PlotDataRequestor(Requestor):
         self.plotData = plotData
         self.headers = {'Content-Type': 'application/json', 'Accept': 'application/json'}
         self.params = self.prepare_params()
-        self.url += 'data/' + self.plotData.get_ptype_name() + "?" + self.params
+        self.url = os.path.join(self.url, cfg.O3API_DATA, 
+                                self.plotData.get_ptype_name(), '?',
+                                self.params)
+        #self.url += 'data/' + self.plotData.get_ptype_name() + "?" + self.params
         r = requests.post(self.url, headers=self.headers)
         return r.json()
 

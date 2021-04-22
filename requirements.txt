@@ -1,5 +1,6 @@
 blinker
 bokeh==2.2.3
+cairosvg
 certifi
 chardet
 click

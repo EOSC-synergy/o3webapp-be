@@ -1,6 +1,8 @@
 import json
 import enum
+import os
 
+import o3webapp_be.config as cfg
 from o3webapp_be.plotData import PlotData, PlotType
 from o3webapp_be.backendException import TypeModelsVarsParserException
 ####################################################
@@ -38,7 +40,7 @@ class TypeModelsVarsParser(InfoParser):
     # parse response file from o3api 
     # extract the needed vars from a complete json file in to a json file for a selected plot type 
     def parse_varsjson_file(self, completeJson, typeName):
-        ptype = '/data/' + typeName
+        ptype = os.path.join('/', cfg.O3API_DATA, typeName)
         # TODO select items needed for the chosen plot type
         varPattern = lambda para: {'name': para['name'], 'type': para['type']}
         paraArray = lambda completeJson, ptype: completeJson['paths'][ptype]['post']['parameters']
