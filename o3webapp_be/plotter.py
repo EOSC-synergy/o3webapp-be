@@ -1195,6 +1195,8 @@ class ZmPlotter(Plotter):
                         for(var k = 0; k <modelNum; k++){
                             var legend = rebinLegends[k];
                             var modelName = legend.label.value;
+                            // don't apply boxcar on the reference model                            
+                            if(modelName == model) continue;
                             //var originDataY = isRebin? rebinModelDict[modelName]['y']:modelDict[modelName]['y'];
                             var originDataY = rebinModelDict[modelName]['y'];
                             var lineData = legend.renderers[0].data_source;
@@ -1578,9 +1580,11 @@ class ZmPlotter(Plotter):
                 }
                 //modify model data, with boxcar based on origin data
                 var copyDict = {};
+                var model = reference.tags[6];
                 for(var k = 0; k <modelNum; k++){
                     var legend = legends[k];
                     var modelName = legend.label.value;
+                    if(modelName == model) continue;
                     var originDataY = isRebin?rebinModelDict[modelName]['y']:modelDict[modelName]['y'];
                     var lineData = legend.renderers[0].data_source;
                     var dataY = lineData.data['y'];
