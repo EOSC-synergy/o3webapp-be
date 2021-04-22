@@ -8,9 +8,10 @@ from bokeh.io import export_png, export_svgs
 from bokeh.embed import json_item, file_html
 from selenium import webdriver
 from PIL import Image
-from io import StringIO
+from io import StringIO, BytesIO
 import csv
 import os
+import tempfile
 
 from o3webapp_be.plotData import PlotData, PlotType, OutputFormat
 
@@ -167,15 +168,30 @@ class PDFDownloadResponder(DownloadResponder):
     def respond_plot(self, plot, plotdata):
         plot.background_fill_color = None
         plot.border_fill_color = None
-        png = export_png(plot, filename=self.folder_path+"pdf/plot.png")
-        image = Image.open(self.folder_path+"pdf/plot.png")
-        pdf = image.convert('RGB')
-        pdf.save(self.folder_path+'pdf/plot.pdf')
-        #return Response(image, mimetype="application/png",
-        #                headers={"Content-Disposition": "attachment;filename={}".format("plot.png")})
-        #return send_from_directory("D:/DD/o3webapp-be/o3webapp_be/plot/pdf/", "test.pdf", as_attachment = True)
-        file_to_be_sent = open(self.folder_path+'pdf/plot.pdf','rb')
-        return send_file(file_to_be_sent, attachment_filename="plot.pdf", as_attachment = True)
+
+        #png = export_png(plot, filename=self.folder_path+"pdf/plot.png")
+        #image = Image.open(self.folder_path+"pdf/plot.png")
+        #pdf = image.convert('RGB')
+        #pdf.save(self.folder_path+'pdf/plot.pdf')
+        ##return Response(image, mimetype="application/png",
+        ##                headers={"Content-Disposition": "attachment;filename={}".format("plot.png")})
+        ##return send_from_directory("D:/DD/o3webapp-be/o3webapp_be/plot/pdf/", "test.pdf", as_attachment = True)
+        #file_to_be_sent = open(self.folder_path+'pdf/plot.pdf','rb')
+        #return send_file(file_to_be_sent, attachment_filename="plot.pdf", as_attachment = True)
+
+        buffer_plot = BytesIO()  # store in IO buffer, not a file        
+        with tempfile.NamedTemporaryFile(suffix='.png') as temp:
+            print("TMP FILE:", temp.name, temp)
+            png = export_png(plot, filename=temp.name)
+            image = Image.open(temp.name)
+            pdf = image.convert('RGB')
+            pdf.save(buffer_plot, 'pdf')
+            pdf.close()
+            buffer_plot.seek(0)
+            return send_file(buffer_plot,
+                             as_attachment=True,
+                             attachment_filename="plot.pdf",
+                             mimetype='application/pdf')
 
 class SVGDownloadResponder(DownloadResponder):
     

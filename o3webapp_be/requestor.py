@@ -67,7 +67,7 @@ class PlotDataRequestor(Requestor):
         self.plotData = plotData
         self.headers = {'Content-Type': 'application/json', 'Accept': 'application/json'}
         self.params = self.prepare_params()
-        self.url += 'plots/' + self.plotData.get_ptype_name() + "?" + self.params
+        self.url += 'data/' + self.plotData.get_ptype_name() + "?" + self.params
         r = requests.post(self.url, headers=self.headers)
         return r.json()
 
