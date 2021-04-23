@@ -4,9 +4,11 @@ from flask_restful import reqparse, abort, Api, Resource
 from werkzeug.exceptions import HTTPException
 from pathlib import Path
 import os
-import io
 import base64
 from PIL import Image
+import cairosvg
+from io import BytesIO
+import tempfile
 
 from o3webapp_be.userManager import UserManager, OpID
 from o3webapp_be.backendException import LoginException, TypeModelsVarsParserException
@@ -105,6 +107,7 @@ def handle_request_for_download(format):
         return jsonify(e.__str__()), 404
     else:
         return r
+
 
 ########################################
 # HTTP Exception list:                             

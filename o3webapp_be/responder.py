@@ -82,19 +82,13 @@ class PlotDataResponder(Responder):
 class PlotResponder(PlotDataResponder):
 
     def respond_plot(self, layout, plotdata):
-        #output_file(os.getenv('PLOT_FOLDER')+'o3as_plot.html')
-        #show(layout)
+
         data = json.dumps(json_item(layout))
         return Response(data, mimetype='application/json')
 
 class DownloadResponder(PlotDataResponder):
 
-    folder_path = os.getenv('PLOT_FOLDER')
-
-    #def __init__(self):
-        #options = webdriver.ChromeOptions()
-        #options.add_experimental_option('excludeSwitches', ['enable-logging'])
-    #    pass
+    #folder_path = os.getenv('PLOT_FOLDER') # shouldn't be needed #vkoz
 
     def respond_plot(self, plot, plotdata):
         pass
@@ -109,25 +103,16 @@ class CSVDownloadResponder(DownloadResponder):
         pass
 
     def respond_plot(self, plot, plotdata):
-        #modelDict = self.build_models_dict(plotdata)
-        #with open(folder_path/'csv/plot.csv', 'w', newline='') as csvfile:
-        #    writer = csv.writer(csvfile, delimiter = ' ')
-        #    for name, model in modelDict.items():
-        #        writer.writerow(model)
-
         df = pd.DataFrame(self.build_models_dict(plotdata))
-        df.to_csv(self.folder_path+'csv/plot.csv', encoding='utf-8', index=False)
+        buffer_csv = BytesIO()  # store in IO buffer, not a file
+        df.to_csv(buffer_csv, encoding='utf-8', index=False)
 
-        #df = pd.DataFrame(self.build_models_dict(plotdata))
-        #dfbuffer = StringIO()
-        #df.to_csv(dfbuffer, encoding='utf-8', index=False)
-        #dfbuffer.seek(0)
-        #data = dfbuffer.getvalue()
-        #return Response(data, mimetype="text/csv",
-        #                headers={"Content-Disposition": "attachment;filename={}".format("plot.csv")})
-        #return send_from_directory(folder_path+'csv/', "plot.csv", as_attachment = True)
-        file_to_be_sent = open(self.folder_path+'csv/plot.csv','rb')
-        return send_file(file_to_be_sent, attachment_filename="plot.csv", as_attachment = True)
+        buffer_csv.seek(0)
+        return send_file(buffer_csv,
+                         as_attachment=True,
+                         attachment_filename="raw_data.csv",
+                         mimetype='text/csv')
+
         
 class ZmCSVDownloadResponder(CSVDownloadResponder):
     
@@ -168,17 +153,13 @@ class PDFDownloadResponder(DownloadResponder):
     def respond_plot(self, plot, plotdata):
         plot.background_fill_color = None
         plot.border_fill_color = None
-        plot.output_backend = "svg"
+        plot.output_backend = 'svg'
 
-        buffer_plot = BytesIO()  # store in IO buffer, not a file        
+        buffer_plot = BytesIO()  # store in IO buffer, not a file
         with tempfile.NamedTemporaryFile(suffix='.svg') as temp:
             print("TMP FILE:", temp.name, temp)
             svg = export_svgs(plot, filename=temp.name)
             cairosvg.svg2pdf(url=temp.name, write_to=buffer_plot)
-            #image = Image.open(temp.name)
-            #pdf = image.convert('RGB')
-            #pdf.save(buffer_plot, 'pdf')
-            #pdf.close()
             buffer_plot.seek(0)
             return send_file(buffer_plot,
                              as_attachment=True,
@@ -190,21 +171,32 @@ class SVGDownloadResponder(DownloadResponder):
     def respond_plot(self, plot, plotdata):
         plot.background_fill_color = None
         plot.border_fill_color = None
-        plot.output_backend = "svg"
-        data = export_svgs(plot, filename=self.folder_path/"svg/plot.svg")
-        #return Response(data, mimetype="image/svg+xml",
-        #                headers={"Content-Disposition": "attachment;filename={}".format("plot.svg")})
-        return send_from_directory(self.folder_path/'svg/', "plot.svg", as_attachment = True)
+        plot.output_backend = 'svg'
+
+        # create a temporary file, which is automatically deleted
+        with tempfile.NamedTemporaryFile(suffix='.svg') as temp:
+            print("TMP FILE (SVG):", temp.name, temp)
+            svg = export_svgs(plot, filename=temp.name)
+            return send_file(temp.name,
+                             as_attachment=True,
+                             attachment_filename="plot.svg",
+                             mimetype='image/svg+xml')
+
 
 class PNGDownloadResponder(DownloadResponder):
     
     def respond_plot(self, plot, plotdata):
         plot.background_fill_color = None
         plot.border_fill_color = None
-        data = export_png(plot, filename=self.folder_path/"png/plot.png")
-        #return Response(data, mimetype="image/png",
-        #                headers={"Content-Disposition": "attachment;filename={}".format("plot.png")})
-        return send_from_directory(self.folder_path/'png/', "plot.png", as_attachment = True)
+
+        # create a temporary file, which is automatically deleted
+        with tempfile.NamedTemporaryFile(suffix='.png') as temp:
+            print("TMP FILE (PNG):", temp.name, temp)
+            png = export_png(plot, filename=temp.name)
+            return send_file(temp.name,
+                             as_attachment=True,
+                             attachment_filename="plot.png",
+                             mimetype='image/png')
 
 class JSONDownloadResponder(DownloadResponder):
     

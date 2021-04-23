@@ -4,6 +4,7 @@ import requests
 import os
 from pathlib import Path
 
+import o3webapp_be.config as cfg
 from o3webapp_be.controller import APIInfoController,PlotypesController,ModelsInfoController,ModelInfoController, TypeModelsVarsController,PlotController
 from o3webapp_be.backendException import LoginException
 
@@ -53,8 +54,8 @@ class UserManager:
         if self.userRequest.method == 'GET':
             if len(auth_code)==0:
                 raise LoginException(1)
-            app_url = os.getenv('O3WEB_URL')
-            egi_url = os.getenv('EGI_URL')
+            app_url = cfg.O3WEB_URL
+            egi_url = cfg.EGI_URL
             headers = {'Content-Type': 'application/x-www-form-urlencoded'}
             data = {'grant_type':'authorization_code', 'code': auth_code,
                     'redirect_uri': app_url+'redirect_url'}

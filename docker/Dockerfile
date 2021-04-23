@@ -59,7 +59,6 @@ ENV LANG C.UTF-8
 ENV O3WEB_URL http://o3web.test.fedcloud.eu/
 ENV O3API_URL http://o3api.test.fedcloud.eu:30505/api/
 ENV EGI_URL https://aai-dev.egi.eu/oidc/
-ENV PLOT_FOLDER o3webapp_be/plot/
 
 # Expose the port
 EXPOSE 5000

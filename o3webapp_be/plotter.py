@@ -76,6 +76,8 @@ class ZmPlotter(Plotter):
         self.plotType = plotdata.get_ptype()
         self.output = plotdata.get_output()
         self.varDict = plotdata.get_vardata_dict()
+        
+        self.output_backend = 'svg'
 
         self.plot_width = 1280
         self.plot_height = 640
@@ -199,11 +201,14 @@ class ZmPlotter(Plotter):
             )
 
         p = figure(plot_width=self.plot_width, plot_height=self.plot_height,
-                   title=self.title, x_axis_type="datetime", visible = True)
+                   title=self.title, x_axis_type="datetime", visible = True,
+                   output_backend=self.output_backend)
         p.add_tools(hoverTool)
 
-        rebinP = figure(plot_width=self.plot_width, plot_height=self.plot_height,
-                   title=self.title, visible = False)
+        rebinP = figure(plot_width=self.plot_width, 
+                        plot_height=self.plot_height,
+                        title=self.title, visible = False,
+                        output_backend=self.output_backend)
         rebinP.add_tools(WheelZoomTool())
         rebinP.add_tools(rebinHoverTool)
         ###################  mmt block #####################
