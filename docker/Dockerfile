@@ -1,7 +1,7 @@
 # Dockerfile has 4 Arguments: base, tag, branch, be_date
 # base - base image (default: ubuntu, optional: debian)
 # tag - tag for base mage (default: 20.04)
-# branch - user repository branch to clone (default: master)
+# be_branch - user repository branch to clone (default: master)
 # be_date - just a current date, to force docker to rebuild from certain layer
 #
 # To build the image:
@@ -21,13 +21,14 @@ LABEL maintainer='XXX'
 # o3webapp-be (backend) as a component of the Ozone assessment service
 
 # What user branch to clone (!)
-ARG branch=master
+ARG be_branch=master
 
 # Install system updates and tools
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && apt-get install -y --no-install-recommends \
 # Install system updates and tools
         git \
+        libcairo2 \
         nano \
         procps \
 # Install system updates and tools
@@ -43,7 +44,7 @@ WORKDIR /srv
 
 ARG be_date
 # Install user app:
-RUN echo ${be_date} && git clone --depth 1 -b $branch https://git.scc.kit.edu/synergy.o3as/o3webapp-be.git && \
+RUN echo ${be_date} && git clone --depth 1 -b $be_branch https://git.scc.kit.edu/synergy.o3as/o3webapp-be.git && \
 # Install o3webapp-be
     cd o3webapp-be && \
     pip3 install --no-cache-dir -e . && \
