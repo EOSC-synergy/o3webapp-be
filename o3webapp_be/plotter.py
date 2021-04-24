@@ -200,7 +200,8 @@ class ZmPlotter(Plotter):
             mode = 'mouse'
             )
 
-        p = figure(plot_width=self.plot_width, plot_height=self.plot_height,
+        p = figure(plot_width=self.plot_width, 
+                   plot_height=self.plot_height,
                    title=self.title, x_axis_type="datetime", visible = True,
                    output_backend=self.output_backend)
         p.add_tools(hoverTool)
@@ -1064,7 +1065,7 @@ class ZmPlotter(Plotter):
             legendLayout.items.append(item)
             rebinLegendLayout.items.append(rebinItem)
 
-        #self.setup_rebin_axis(rebinP)
+        self.setup_rebin_axis(rebinP)
         rebinP.toolbar.autohide = True
         self.setup_axis(p)
         p.toolbar.autohide = True
@@ -1903,14 +1904,13 @@ class ZmPlotter(Plotter):
         # plot.xaxis.axis_label = "Time"
         # plot.xaxis.axis_label_text_color = "#aa6666"
         # plot.xaxis.axis_label_standoff = 30
-        plot.yaxis.axis_label = self.plotType.name
-        plot.yaxis.axis_label_text_font_style = "italic"
+        #-plot.yaxis.axis_label = self.plotType.name
         # tick line
-        plot.xaxis.major_tick_line_color = "orange"
+        #-plot.xaxis.major_tick_line_color = "orange"
         plot.xaxis.major_tick_line_width = 3
         plot.xaxis.minor_tick_line_color = "black"
         plot.yaxis.minor_tick_line_width = 2
-        plot.yaxis.minor_tick_line_color = "firebrick"
+        #-plot.yaxis.minor_tick_line_color = "firebrick"
         plot.axis.major_tick_out = 10
         plot.axis.minor_tick_in = -3
         plot.axis.minor_tick_out = 8
@@ -1994,9 +1994,9 @@ class ZmPlotter(Plotter):
             months=['%m. %Y', '%b %Y'],
             years=['%Y']#'%m. %Y'
             )
-        plot.yaxis.major_label_text_color = "orange"
+        #-plot.yaxis.major_label_text_color = "orange"
         # orientation
-        plot.xaxis.major_label_orientation = pi / 4
+        #-plot.xaxis.major_label_orientation = pi / 4
         plot.yaxis.major_label_orientation = "vertical"
 
     def setup_rebin_axis(self, plot):
@@ -2007,21 +2007,20 @@ class ZmPlotter(Plotter):
         # plot.xaxis.axis_label = "Time"
         # plot.xaxis.axis_label_text_color = "#aa6666"
         # plot.xaxis.axis_label_standoff = 30
-        plot.yaxis.axis_label = self.plotType.name
-        plot.yaxis.axis_label_text_font_style = "italic"
+        #-plot.yaxis.axis_label = self.plotType.name
         # tick line
-        plot.xaxis.major_tick_line_color = "orange"
+        #-plot.xaxis.major_tick_line_color = "orange"
         plot.xaxis.major_tick_line_width = 3
         plot.xaxis.minor_tick_line_color = "black"
         plot.yaxis.minor_tick_line_width = 2
-        plot.yaxis.minor_tick_line_color = "firebrick"
+        #-plot.yaxis.minor_tick_line_color = "firebrick"
         plot.axis.major_tick_out = 10
         plot.axis.minor_tick_in = -3
         plot.axis.minor_tick_out = 8 
         
-        plot.yaxis.major_label_text_color = "orange"
+        #-plot.yaxis.major_label_text_color = "orange"
         # orientation
-        plot.xaxis.major_label_orientation = pi / 4
+        #-plot.xaxis.major_label_orientation = pi / 4
         plot.yaxis.major_label_orientation = "vertical"
 
 class Tco3ZmPlotter(ZmPlotter):
